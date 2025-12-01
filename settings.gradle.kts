@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MoneyHelper"
 include(":app")
+

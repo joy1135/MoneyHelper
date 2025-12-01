@@ -1,3 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MoneyHelper</string>
+    <string name="app_name">Money Helper</string>
+
+    <!-- Экраны -->
+    <string name="main_screen_title">Главный</string>
+    <string name="categories_screen_title">Категории</string>
+    <string name="detail_screen_title">При клике на категорию</string>
+    <string name="calendar_screen_title">Личный Кабинет</string>
+    <string name="income_screen_title">Доходы</string>
+
+    <!-- Общие -->
+    <string name="finance_label">Учёт финансов</string>
+    <string name="show_button">Показать</string>
+    <string name="add_button">Добавить</string>
+
+    <!-- Главный экран -->
+    <string name="my_expenses">Мои расходы</string>
+    <string name="safe_expenses">Безопасные траты</string>
+    <string name="balance">Бал. доход-расход</string>
+    <string name="category">Категория</string>
+    <string name="expense">Расход</string>
+    <string name="overall_expenses_chart">График общ. расходов</string>
+
+    <!-- Категории -->
+    <string name="expenses_by_category">Расходы по категориям</string>
+    <string name="import_bank_statement">Импортировать выписку из банка</string>
+
+    <!-- Детализация -->
+    <string name="details">Подробности</string>
+    <string name="budget_percentage">Общий % бюджета:</string>
+    <string name="prev_month_expense">Расх. пред. месяц:</string>
+    <string name="expense_chart">График расходов</string>
+    <string name="forecast">прогноз</string>
+
+    <!-- Календарь -->
+    <string name="calendar_title">Календарь расходов</string>
+    <string name="upcoming_expenses">Ближайшие расходы</string>
+
+    <!-- Доходы -->
+    <string name="incomes">Доходы</string>
+    <string name="income">Доход</string>
+
+    <!-- Навигация -->
+    <string name="nav_categories">Категории</string>
+    <string name="nav_expenses">Расход</string>
+    <string name="nav_profile">Личный кабинет</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
