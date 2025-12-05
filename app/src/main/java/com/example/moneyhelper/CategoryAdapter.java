@@ -1,20 +1,25 @@
 package com.example.moneyhelper;
 import com.example.moneyhelper.DataTypes.Category;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
+import java.util.Locale;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
     private List<Category> categories;
+    private CategoryClickListener clickListener;
 
-    public CategoryAdapter(List<Category> categories) {
+    public CategoryAdapter(List<Category> categories, CategoryClickListener clickListener) {
         this.categories = categories;
+        this.clickListener = clickListener;
     }
 
     @NonNull
@@ -28,7 +33,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
         Category category = categories.get(position);
-        holder.bind(category);
+        holder.bind(category, clickListener);
     }
 
     @Override
@@ -41,27 +46,119 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         notifyDataSetChanged();
     }
 
+    /**
+     * Интерфейс для обработки кликов
+     */
+    public interface CategoryClickListener {
+        void onCategoryClick(Category category);
+        void onCategoryLongClick(Category category);
+    }
+
     static class CategoryViewHolder extends RecyclerView.ViewHolder {
+        private TextView iconTextView;
         private TextView categoryNameTextView;
         private TextView expenseTextView;
         private TextView percentageTextView;
-        private TextView amountTextView;
+        private TextView budgetTextView;
+        private TextView differenceTextView;
+        private ProgressBar budgetProgressBar;
 
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
+            iconTextView = itemView.findViewById(R.id.iconTextView);
             categoryNameTextView = itemView.findViewById(R.id.categoryNameTextView);
             expenseTextView = itemView.findViewById(R.id.expenseTextView);
             percentageTextView = itemView.findViewById(R.id.percentageTextView);
-
-            amountTextView = itemView.findViewById(R.id.amountTextView);
+            budgetTextView = itemView.findViewById(R.id.budgetTextView);
+            differenceTextView = itemView.findViewById(R.id.differenceTextView);
+            budgetProgressBar = itemView.findViewById(R.id.budgetProgressBar);
         }
 
-        public void bind(Category category) {
+        public void bind(Category category, CategoryClickListener listener) {
+            // Иконка
+            if (iconTextView != null) {
+                iconTextView.setText(category.getIcon());
+            }
+
+            // Название
             categoryNameTextView.setText(category.getName());
-            expenseTextView.setText(category.getExpense() + "");
+
+            // Текущие расходы
+            expenseTextView.setText(String.format(Locale.getDefault(),
+                    "%.0f ₽", category.getCurrentExpense()));
+
+            // Процент от общих расходов
             percentageTextView.setText(category.getPercentage() + "%");
 
-            amountTextView.setText(category.getBudget() + " ₽");
+            // Бюджет
+            if (budgetTextView != null) {
+                if (category.getBudget() > 0) {
+                    budgetTextView.setText(String.format(Locale.getDefault(),
+                            "Бюджет: %.0f ₽", category.getBudget()));
+                    budgetTextView.setVisibility(View.VISIBLE);
+                } else {
+                    budgetTextView.setVisibility(View.GONE);
+                }
+            }
+
+            // Разница (перерасход/экономия)
+            if (differenceTextView != null && category.getBudget() > 0) {
+                double diff = category.getDifference();
+
+                if (diff > 0) {
+                    // Перерасход
+                    differenceTextView.setText(String.format(Locale.getDefault(),
+                            "+%.0f ₽", diff));
+                    differenceTextView.setTextColor(Color.parseColor("#F44336")); // Красный
+                } else if (diff < 0) {
+                    // Экономия
+                    differenceTextView.setText(String.format(Locale.getDefault(),
+                            "%.0f ₽", diff));
+                    differenceTextView.setTextColor(Color.parseColor("#4CAF50")); // Зеленый
+                } else {
+                    // В рамках бюджета
+                    differenceTextView.setText("±0 ₽");
+                    differenceTextView.setTextColor(Color.parseColor("#757575")); // Серый
+                }
+
+                differenceTextView.setVisibility(View.VISIBLE);
+            } else if (differenceTextView != null) {
+                differenceTextView.setVisibility(View.GONE);
+            }
+
+            // ProgressBar для бюджета
+            if (budgetProgressBar != null && category.getBudget() > 0) {
+                int progress = category.getBudgetFulfillment();
+                budgetProgressBar.setProgress(Math.min(progress, 100));
+
+                // Меняем цвет в зависимости от процента
+                if (progress > 100) {
+                    budgetProgressBar.setProgressTintList(
+                            android.content.res.ColorStateList.valueOf(
+                                    Color.parseColor("#F44336"))); // Красный
+                } else if (progress > 80) {
+                    budgetProgressBar.setProgressTintList(
+                            android.content.res.ColorStateList.valueOf(
+                                    Color.parseColor("#FF9800"))); // Оранжевый
+                } else {
+                    budgetProgressBar.setProgressTintList(
+                            android.content.res.ColorStateList.valueOf(
+                                    Color.parseColor("#4CAF50"))); // Зеленый
+                }
+
+                budgetProgressBar.setVisibility(View.VISIBLE);
+            } else if (budgetProgressBar != null) {
+                budgetProgressBar.setVisibility(View.GONE);
+            }
+
+            // Обработка кликов
+            if (listener != null) {
+                itemView.setOnClickListener(v -> listener.onCategoryClick(category));
+                itemView.setOnLongClickListener(v -> {
+                    listener.onCategoryLongClick(category);
+                    return true;
+                });
+            }
         }
     }
 }
