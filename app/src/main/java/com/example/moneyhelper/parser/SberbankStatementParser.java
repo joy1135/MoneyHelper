@@ -35,9 +35,12 @@ public class SberbankStatementParser {
     private final Context context;
     private final SimpleDateFormat dateFormat;
 
+    private final SimpleDateFormat parseDateFormat;
+
     public SberbankStatementParser(Context context) {
         this.context = context;
-        this.dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+        this.dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        this.parseDateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
     }
 
     /**
@@ -51,6 +54,8 @@ public class SberbankStatementParser {
 
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(document);
+
+
 
             Log.d(TAG, "Извлечен текст из PDF, длина: " + text.length());
 
@@ -96,13 +101,13 @@ public class SberbankStatementParser {
                 if (transaction != null && !transaction.isIncome) {
                     transactions.add(transaction);
                     Log.d(TAG, "✓ Транзакция добавлена (расход)");
-                    Log.d(TAG, String.format("  Сумма: %.2f, Категория: %s, Описание: %s",
+                    Log.d(TAG, String.format("  Сумма: %s, Категория: %s, Описание: %s",
                             transaction.amount, transaction.category, transaction.description));
                 } else if (transaction != null && transaction.isIncome) {
-                    transactions.add(transaction);
-                    Log.d(TAG, "✗ Транзакция добавлена (доход): " + String.format("%.2f", transaction.amount));
-                    Log.d(TAG, String.format("  Сумма: %.2f, Категория: %s, Описание: %s",
-                            transaction.amount, transaction.category, transaction.description));
+//                    transactions.add(transaction);
+//                    Log.d(TAG, "✗ Транзакция добавлена (доход): " + String.format("%s", transaction.amount));
+//                    Log.d(TAG, String.format("  Сумма: %s, Категория: %s, Описание: %s",
+//                            transaction.amount, transaction.category, transaction.description));
                 } else {
                     Log.d(TAG, "✗ Транзакция не распознана");
                 }
@@ -127,7 +132,7 @@ public class SberbankStatementParser {
 
         // 1. Парсим дату и время
 //        DateSearchRes parseDateRes = ;
-        transaction.date = parseDate(mainLine);
+        transaction.date =  parseDate(mainLine);
         Log.d(TAG, "Дата: " + transaction.date);
 
 
@@ -142,12 +147,17 @@ public class SberbankStatementParser {
         }
 
         // 3. Извлекаем суммы (их может быть две: сумма операции и остаток)
-        String srez = mainLine.substring(5);
-        List<Double> amounts = extractAllAmounts(srez);
+
+        List<Integer> amounts = extractAllAmounts(mainLine);
         if (!amounts.isEmpty()) {
-            // Первая сумма - это сумма операции
-            transaction.amount = amounts.get(0);
-            Log.d(TAG, "✓ Найдена сумма: " + transaction.amount);
+
+
+            transaction.amount = amounts.get(1);
+            Log.d(TAG, "✓ Найдена сумма операции: " + transaction.amount);
+
+            if (amounts.size() > 1) {
+                Log.d(TAG, "  Остаток на счете: " + amounts.get(1));
+            }
 
             // Определяем тип операции
             transaction.isIncome = mainLine.contains("+") ||
@@ -215,7 +225,7 @@ public class SberbankStatementParser {
             String dateTimeStr = matcher.group(1) + " " + matcher.group(2);
             try {
 //
-                return dateFormat.parse(dateTimeStr);
+                return parseDateFormat.parse(dateTimeStr);
             } catch (ParseException e) {
                 Log.e(TAG, "Ошибка парсинга даты: " + dateTimeStr, e);
             }
@@ -239,27 +249,29 @@ public class SberbankStatementParser {
      * Извлекает все суммы из строки (может быть несколько)
      * Формат: ДД.ММ.ГГГГ ЧЧ:ММ КОД КАТЕГОРИЯ СУММА_ОПЕРАЦИИ ОСТАТОК
      */
-    private List<Double> extractAllAmounts(String line) {
-        List<Double> amounts = new ArrayList<>();
+    private List<Integer> extractAllAmounts(String line) {
+        List<Integer> amounts = new ArrayList<>();
+
+        // Убираем код авторизации (6 цифр после времени), чтобы не путать с суммами
+        String cleanedLine = line.replaceFirst("\\d{2}:\\d{2}\\s+\\d{6}\\s+", "XX:XX XXXXXX ");
+
+        Log.d(TAG, "  Очищенная строка: " + cleanedLine);
 
         // Паттерн для поиска суммы: может быть +/-, пробелы между разрядами, точка или запятая
         // ВАЖНО: должно быть ровно 2 цифры после точки/запятой (копейки)
         Pattern amountPattern = Pattern.compile("([+-])?\\s*(\\d{1,3}(?:[,\\s]\\d{3})*[,.]\\d{2})(?!\\d)");
-        Matcher matcher = amountPattern.matcher(line);
+        Matcher matcher = amountPattern.matcher(cleanedLine);
 
         while (matcher.find()) {
             String sign = matcher.group(1);
             String amountStr = matcher.group(2)
-                    .replace(",", ".");
-
-
-                    // Неразрывный пробел
-
-            amountStr = amountStr.replaceAll("\\s+", "");
-            amountStr = amountStr.trim();
+                    .replace(",", ".")
+                    .replaceAll("\\s+", "") // Убираем все пробелы
+                    .trim();
 
             try {
-                double amount = Double.parseDouble(amountStr);
+                double amountP = Double.parseDouble(amountStr);
+                int amount = (int) Math.round(amountP);
 
                 // Проверяем что это похоже на сумму денег
                 if (amount > 0 && amount < 10000000) {
@@ -423,7 +435,7 @@ public class SberbankStatementParser {
      */
     public static class Transaction {
         public Date date;
-        public double amount;
+        public int amount;
         public String category;
         public String description;
         public boolean isIncome;
@@ -431,16 +443,10 @@ public class SberbankStatementParser {
         @Override
         public String toString() {
             return String.format(Locale.getDefault(),
-                    "Transaction{date=%s, amount=%.2f, category='%s', description='%s', isIncome=%b}",
+                    "Transaction{date=%s, amount=%s, category='%s', description='%s', isIncome=%b}",
                     date, amount, category, description, isIncome);
         }
     }
 
-    public static class DateSearchRes {
-        Date date;
-        int offset;
 
-        public DateSearchRes(Date parse, int end) {
-        }
-    }
 }

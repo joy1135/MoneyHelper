@@ -72,7 +72,7 @@ public class ParserTestActivity extends AppCompatActivity {
                     count++;
                     result.append("--- Транзакция #").append(count).append(" ---\n");
                     result.append("Дата: ").append(t.date).append("\n");
-                    result.append("Сумма: ").append(String.format("%.2f", t.amount)).append(" руб.\n");
+                    result.append("Сумма: ").append(String.format("%s", t.amount)).append(" руб.\n");
                     result.append("Категория: ").append(t.category != null ? t.category : "НЕ НАЙДЕНА").append("\n");
                     result.append("Описание: ").append(t.description != null ? t.description : "НЕ НАЙДЕНО").append("\n");
                     result.append("Тип: ").append(t.isIncome ? "Доход" : "Расход").append("\n");

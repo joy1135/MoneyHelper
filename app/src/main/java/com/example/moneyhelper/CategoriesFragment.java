@@ -137,6 +137,8 @@ public class CategoriesFragment extends Fragment {
         }).start();
     }
 
+
+
     /**
      * Показать список категорий
      */
