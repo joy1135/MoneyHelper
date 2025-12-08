@@ -1,11 +1,12 @@
 package com.example.moneyhelper;
 import com.example.moneyhelper.DataTypes.Expense;
-
+import com.example.moneyhelper.scheduler.PredictionScheduler;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -15,6 +16,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // Инициализируем планировщик прогнозов
+        PredictionScheduler.schedulePredictions(this);
+        PDFBoxResourceLoader.init(getApplicationContext());
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
@@ -22,6 +26,10 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             loadFragment(new HomeFragment());
         }
+
+
+
+
 
         setupBottomNavigation();
     }
