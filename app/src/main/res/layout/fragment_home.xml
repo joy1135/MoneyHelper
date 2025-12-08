@@ -152,6 +152,20 @@
                     android:layout_marginTop="8dp"
                     android:background="#F5F5F5"/>
 
+                <Button
+                    android:id="@+id/predictionButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Спрогнозировать расходы"
+                    android:backgroundTint="#E0E0E0"
+                    android:textColor="@color/black"
+                    android:padding="12dp"
+                    android:layout_margin="16dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"/>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
