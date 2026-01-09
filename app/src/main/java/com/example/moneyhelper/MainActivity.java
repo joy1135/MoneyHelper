@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // Инициализируем планировщик прогнозов
-        PredictionScheduler.schedulePredictions(this);
+//        PredictionScheduler.schedulePredictions(this);
         PDFBoxResourceLoader.init(getApplicationContext());
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView);

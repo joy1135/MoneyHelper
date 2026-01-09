@@ -291,6 +291,75 @@ public class CategoryService {
     }
 
     /**
+     * Получить топ N категорий расходов за месяц
+     */
+    public List<Category> getTopCategories(Date month, int limit) {
+        List<Category> allCategories = getCategoriesForMonth(month);
+        
+        // Фильтруем категории с расходами > 0 и берем топ N
+        List<Category> topCategories = new ArrayList<>();
+        for (Category category : allCategories) {
+            if (category.getCurrentExpense() > 0) {
+                topCategories.add(category);
+                if (topCategories.size() >= limit) {
+                    break;
+                }
+            }
+        }
+        
+        return topCategories;
+    }
+    
+    /**
+     * Получить общий доход за месяц
+     * TODO: Реализовать получение доходов из БД, если есть таблица доходов
+     */
+    public double getTotalIncome(Date month) {
+        // Пока возвращаем 0, так как доходы не хранятся в БД
+        // В будущем можно добавить таблицу incomes или использовать другую логику
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(month);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        String monthStr = dateFormat.format(cal.getTime());
+        
+        // Проверяем, есть ли таблица incomes
+        try {
+            String query = "SELECT COALESCE(SUM(amount), 0) FROM incomes " +
+                          "WHERE user_id = ? AND date = ?";
+            try (Cursor cursor = db.rawQuery(query, 
+                    new String[]{String.valueOf(getCurrentUserId()), monthStr})) {
+                if (cursor.moveToFirst()) {
+                    return cursor.getDouble(0);
+                }
+            }
+        } catch (Exception e) {
+            // Таблицы incomes нет, возвращаем 0
+            Log.d(TAG, "Таблица incomes не найдена, доходы не учитываются");
+        }
+        
+        return 0.0;
+    }
+    
+    /**
+     * Получить общий расход за месяц
+     */
+    public double getTotalExpense(Date month) {
+        CategoryStats stats = getCategoryStats(month);
+        return stats.totalExpense;
+    }
+    
+    /**
+     * Получить баланс (доход - расход) за месяц
+     */
+    public double getBalance(Date month) {
+        double income = getTotalIncome(month);
+        double expense = getTotalExpense(month);
+        return income - expense;
+    }
+
+    /**
      * Получить статистику по категориям
      */
     public CategoryStats getCategoryStats(Date month) {

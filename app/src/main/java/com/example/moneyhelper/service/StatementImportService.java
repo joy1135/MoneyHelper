@@ -190,6 +190,7 @@ public class StatementImportService {
         values.put("user_cat_id", userCatId);
         values.put("expenses", transaction.amount);
         values.put("date_id", dateId);
+        values.put("transaction_id", transaction.id);
 
         return db.insert("monthly_expenses", null, values);
     }
@@ -199,8 +200,28 @@ public class StatementImportService {
      */
     private boolean isDuplicate(SQLiteDatabase db,
                                 SberbankStatementParser.Transaction transaction) {
-//        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+
+        // Сначала проверяем по ID транзакции (быстрее и надежнее)
+        if (transaction.id != null) {
+            Cursor cursor = db.query(
+                    "monthly_expenses",
+                    new String[]{"id"},
+                    "transaction_id = ?",
+                    new String[]{transaction.id},
+                    null, null, null
+            );
+
+            boolean exists = cursor.getCount() > 0;
+            cursor.close();
+
+            if (exists) {
+                Log.d(TAG, "Дубликат по ID: " + transaction.id);
+                return true;
+            }
+        }
+
+        // Fallback: проверка по дате и сумме
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String dateStr = dateFormat.format(transaction.date);
 
         Cursor cursor = db.rawQuery(

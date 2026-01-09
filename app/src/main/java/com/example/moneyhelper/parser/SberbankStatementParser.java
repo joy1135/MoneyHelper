@@ -2,7 +2,7 @@ package com.example.moneyhelper.parser;
 
 import android.content.Context;
 import android.net.Uri;
-import android.nfc.Tag;
+
 import android.util.Log;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -35,12 +34,9 @@ public class SberbankStatementParser {
     private final Context context;
     private final SimpleDateFormat dateFormat;
 
-    private final SimpleDateFormat parseDateFormat;
-
     public SberbankStatementParser(Context context) {
         this.context = context;
-        this.dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-        this.parseDateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+        this.dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
     }
 
     /**
@@ -54,8 +50,6 @@ public class SberbankStatementParser {
 
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(document);
-
-
 
             Log.d(TAG, "Извлечен текст из PDF, длина: " + text.length());
 
@@ -104,10 +98,7 @@ public class SberbankStatementParser {
                     Log.d(TAG, String.format("  Сумма: %s, Категория: %s, Описание: %s",
                             transaction.amount, transaction.category, transaction.description));
                 } else if (transaction != null && transaction.isIncome) {
-//                    transactions.add(transaction);
-//                    Log.d(TAG, "✗ Транзакция добавлена (доход): " + String.format("%s", transaction.amount));
-//                    Log.d(TAG, String.format("  Сумма: %s, Категория: %s, Описание: %s",
-//                            transaction.amount, transaction.category, transaction.description));
+                    Log.d(TAG, "✗ Транзакция пропущена (доход): " + String.format("%s", transaction.amount));
                 } else {
                     Log.d(TAG, "✗ Транзакция не распознана");
                 }
@@ -130,14 +121,15 @@ public class SberbankStatementParser {
         String mainLine = lines[startIndex].trim();
         Log.d(TAG, "Анализируем строку: " + mainLine);
 
+        String transactionId = extractTransactionId(mainLine);
+        if (transactionId != null) {
+            transaction.id = transactionId;
+            Log.d(TAG, "✓ Код транзакции: " + transactionId);
+        }
+
         // 1. Парсим дату и время
-//        DateSearchRes parseDateRes = ;
-        transaction.date =  parseDate(mainLine);
+        transaction.date = parseDate(mainLine);
         Log.d(TAG, "Дата: " + transaction.date);
-
-
-
-//        int offset = parseDateRes.offset;
 
         // 2. Извлекаем категорию из основной строки
         String category = findCategory(mainLine);
@@ -150,8 +142,8 @@ public class SberbankStatementParser {
 
         List<Integer> amounts = extractAllAmounts(mainLine);
         if (!amounts.isEmpty()) {
-
-
+            // ВСЕГДА берем ПЕРВУЮ сумму - это сумма операции
+            // Вторая сумма (если есть) - это остаток на счете
             transaction.amount = amounts.get(1);
             Log.d(TAG, "✓ Найдена сумма операции: " + transaction.amount);
 
@@ -224,14 +216,28 @@ public class SberbankStatementParser {
         if (matcher.find()) {
             String dateTimeStr = matcher.group(1) + " " + matcher.group(2);
             try {
-//
-                return parseDateFormat.parse(dateTimeStr);
+                return dateFormat.parse(dateTimeStr);
             } catch (ParseException e) {
                 Log.e(TAG, "Ошибка парсинга даты: " + dateTimeStr, e);
             }
         }
 
         return new Date();
+    }
+
+    /**
+     * Извлекает код транзакции (авторизации) - 6 цифр после времени
+     */
+    private String extractTransactionId(String line) {
+        // Паттерн: время (ЧЧ:ММ) затем пробелы и 6 цифр
+        Pattern pattern = Pattern.compile("\\d{2}:\\d{2}\\s+(\\d{6})");
+        Matcher matcher = pattern.matcher(line);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+
+        return null;
     }
 
     /**
@@ -435,6 +441,7 @@ public class SberbankStatementParser {
      */
     public static class Transaction {
         public Date date;
+        public String id;
         public int amount;
         public String category;
         public String description;
@@ -447,6 +454,4 @@ public class SberbankStatementParser {
                     date, amount, category, description, isIncome);
         }
     }
-
-
 }

@@ -15,11 +15,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moneyhelper.DatabaseHelper;
+import com.example.moneyhelper.DataTypes.Category;
 import com.example.moneyhelper.predict.ExpensePredictor;
 import com.example.moneyhelper.predict.PredictionResult;
+import com.example.moneyhelper.service.CategoryService;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,7 +35,14 @@ public class HomeFragment extends Fragment {
     private RecyclerView expensesRecyclerView;
     private ExpenseAdapter expenseAdapter;
     private Button predictionButton;
+    private Button showButton;
     private ExecutorService executorService;
+    private CategoryService categoryService;
+    
+    private List<Category> allCategories;
+    private List<Category> displayedCategories;
+    private static final int INITIAL_COUNT = 3;
+    private static final int LOAD_MORE_COUNT = 5;
 
     @Nullable
     @Override
@@ -45,9 +58,11 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        categoryService = new CategoryService(getContext());
         initViews(view);
         setupRecyclerView();
         setupPredictionButton();
+        setupShowButton();
         loadData();
 
         // Создаем пул потоков
@@ -57,6 +72,7 @@ public class HomeFragment extends Fragment {
     private void initViews(View view) {
         balanceTextView = view.findViewById(R.id.balanceTextView);
         expensesRecyclerView = view.findViewById(R.id.expensesRecyclerView);
+        showButton = view.findViewById(R.id.showButton);
     }
 
     private void setupRecyclerView() {
@@ -69,19 +85,110 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadData() {
-        balanceTextView.setText("Бал. доход-расход: 12000₽");
-
-        List<com.example.moneyhelper.DataTypes.Expense> expenses = getSampleExpenses();
+        // Загружаем данные в фоновом потоке
+        new Thread(() -> {
+            try {
+                Date currentMonth = new Date();
+                
+                // Получаем баланс
+                double balance = categoryService.getBalance(currentMonth);
+                
+                // Получаем все категории с расходами
+                allCategories = categoryService.getCategoriesForMonth(currentMonth);
+                
+                // Фильтруем категории с расходами > 0
+                List<Category> categoriesWithExpenses = new ArrayList<>();
+                for (Category category : allCategories) {
+                    if (category.getCurrentExpense() > 0) {
+                        categoriesWithExpenses.add(category);
+                    }
+                }
+                allCategories = categoriesWithExpenses;
+                
+                // Берем топ-3 для начального отображения
+                displayedCategories = new ArrayList<>();
+                int count = Math.min(INITIAL_COUNT, allCategories.size());
+                for (int i = 0; i < count; i++) {
+                    displayedCategories.add(allCategories.get(i));
+                }
+                
+                // Обновляем UI в главном потоке
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        updateBalance(balance);
+                        updateExpensesList();
+                        updateShowButton();
+                    });
+                }
+                
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(),
+                                "Ошибка загрузки данных: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        }).start();
+    }
+    
+    private void updateBalance(double balance) {
+        DecimalFormat df = new DecimalFormat("#,###", new DecimalFormatSymbols(Locale.getDefault()));
+        String balanceText = String.format(Locale.getDefault(), "Бал. доход-расход: %s₽", df.format(balance));
+        balanceTextView.setText(balanceText);
+        
+        // Меняем цвет в зависимости от баланса
+        if (balance >= 0) {
+            balanceTextView.setTextColor(getResources().getColor(android.R.color.holo_green_dark, null));
+        } else {
+            balanceTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark, null));
+        }
+    }
+    
+    private void updateExpensesList() {
+        // Конвертируем Category в Expense для отображения
+        List<com.example.moneyhelper.DataTypes.Expense> expenses = new ArrayList<>();
+        for (Category category : displayedCategories) {
+            expenses.add(new com.example.moneyhelper.DataTypes.Expense(
+                    category.getIcon() + " " + category.getName(),
+                    (int) category.getCurrentExpense(),
+                    false
+            ));
+        }
         expenseAdapter.updateExpenses(expenses);
     }
-
-    private List<com.example.moneyhelper.DataTypes.Expense> getSampleExpenses() {
-        List<com.example.moneyhelper.DataTypes.Expense> expenses = new ArrayList<>();
-
-        // Создаем объекты Expense с правильным пакетом
-        expenses.add(new com.example.moneyhelper.DataTypes.Expense("ЖКХ", 2000, false));
-        expenses.add(new com.example.moneyhelper.DataTypes.Expense("ЖКХ", 2000, true));
-        return expenses;
+    
+    private void updateShowButton() {
+        if (showButton != null) {
+            if (displayedCategories.size() >= allCategories.size()) {
+                // Все категории загружены, скрываем кнопку
+                showButton.setVisibility(View.GONE);
+            } else {
+                // Есть еще категории, показываем кнопку
+                showButton.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+    
+    private void setupShowButton() {
+        if (showButton != null) {
+            showButton.setOnClickListener(v -> loadMoreCategories());
+        }
+    }
+    
+    private void loadMoreCategories() {
+        // Загружаем еще 5 категорий
+        int currentCount = displayedCategories.size();
+        int nextCount = Math.min(currentCount + LOAD_MORE_COUNT, allCategories.size());
+        
+        displayedCategories.clear();
+        for (int i = 0; i < nextCount; i++) {
+            displayedCategories.add(allCategories.get(i));
+        }
+        
+        updateExpensesList();
+        updateShowButton();
     }
 
     private void setupPredictionButton() {
@@ -154,6 +261,13 @@ public class HomeFragment extends Fragment {
                 .setMessage(message.toString())
                 .setPositiveButton("OK", null)
                 .show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Перезагружаем данные при возвращении на экран
+        loadData();
     }
 
     @Override

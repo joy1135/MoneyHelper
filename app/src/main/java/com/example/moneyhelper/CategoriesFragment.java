@@ -22,6 +22,7 @@ import com.example.moneyhelper.service.CategoryService;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -34,9 +35,13 @@ public class CategoriesFragment extends Fragment {
     private ProgressBar progressBar;
     private TextView emptyTextView;
     private TextView statsTextView;
+    private TextView monthTextView;
+    private TextView monthPrevButton;
+    private TextView monthNextButton;
 
     private CategoryService categoryService;
     private SimpleDateFormat monthFormat;
+    private Calendar selectedMonth;
 
     @Nullable
     @Override
@@ -53,6 +58,14 @@ public class CategoriesFragment extends Fragment {
         // Инициализация сервиса
         categoryService = new CategoryService(getContext());
         monthFormat = new SimpleDateFormat("LLLL yyyy", new Locale("ru"));
+        
+        // Инициализация выбранного месяца (текущий месяц)
+        selectedMonth = Calendar.getInstance();
+        selectedMonth.set(Calendar.DAY_OF_MONTH, 1);
+        selectedMonth.set(Calendar.HOUR_OF_DAY, 0);
+        selectedMonth.set(Calendar.MINUTE, 0);
+        selectedMonth.set(Calendar.SECOND, 0);
+        selectedMonth.set(Calendar.MILLISECOND, 0);
 
         return v;
     }
@@ -72,8 +85,18 @@ public class CategoriesFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         emptyTextView = view.findViewById(R.id.emptyTextView);
         statsTextView = view.findViewById(R.id.statsTextView);
+        monthTextView = view.findViewById(R.id.monthTextView);
+        monthPrevButton = view.findViewById(R.id.monthPrevButton);
+        monthNextButton = view.findViewById(R.id.monthNextButton);
 
         addButton.setOnClickListener(v -> showAddCategoryDialog());
+        
+        // Обработчики для переключения месяцев
+        monthPrevButton.setOnClickListener(v -> navigateMonth(-1));
+        monthNextButton.setOnClickListener(v -> navigateMonth(1));
+        
+        // Обновляем отображение месяца
+        updateMonthDisplay();
     }
 
     private void setupRecyclerView() {
@@ -104,12 +127,13 @@ public class CategoriesFragment extends Fragment {
         // Загружаем в фоновом потоке
         new Thread(() -> {
             try {
-                // Получаем категории за текущий месяц
-                List<Category> categories = categoryService.getAllCategories();
+                // Получаем категории за выбранный месяц
+                Date monthDate = selectedMonth.getTime();
+                List<Category> categories = categoryService.getCategoriesForMonth(monthDate);
 
                 // Получаем статистику
                 CategoryService.CategoryStats stats =
-                        categoryService.getCategoryStats(new Date());
+                        categoryService.getCategoryStats(monthDate);
 
                 // Обновляем UI в главном потоке
                 if (getActivity() != null) {
@@ -173,7 +197,7 @@ public class CategoriesFragment extends Fragment {
         if (statsTextView != null) {
             statsTextView.setVisibility(View.VISIBLE);
 
-            String monthName = monthFormat.format(new Date());
+            String monthName = monthFormat.format(selectedMonth.getTime());
             String statsText = String.format(Locale.getDefault(),
                     "%s\n" +
                             "Категорий: %d | Расходы: %.0f ₽ | Бюджет: %.0f ₽",
@@ -184,6 +208,25 @@ public class CategoriesFragment extends Fragment {
             );
 
             statsTextView.setText(statsText);
+        }
+    }
+    
+    /**
+     * Переключение месяца
+     */
+    private void navigateMonth(int direction) {
+        selectedMonth.add(Calendar.MONTH, direction);
+        updateMonthDisplay();
+        loadCategories();
+    }
+    
+    /**
+     * Обновить отображение месяца
+     */
+    private void updateMonthDisplay() {
+        if (monthTextView != null) {
+            String monthName = monthFormat.format(selectedMonth.getTime());
+            monthTextView.setText(monthName);
         }
     }
 

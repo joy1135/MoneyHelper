@@ -34,6 +34,59 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <!-- Переключение месяцев -->
+    <LinearLayout
+        android:id="@+id/monthSelectorLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/financeLabelTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Стрелка влево -->
+        <TextView
+            android:id="@+id/monthPrevButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="◀"
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"/>
+
+        <!-- Текст месяца -->
+        <TextView
+            android:id="@+id/monthTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Январь 2024"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:paddingHorizontal="16dp"
+            android:minWidth="120dp"
+            android:gravity="center"/>
+
+        <!-- Стрелка вправо -->
+        <TextView
+            android:id="@+id/monthNextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="▶"
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"/>
+
+    </LinearLayout>
+
     <!-- Статистика -->
     <TextView
         android:id="@+id/statsTextView"
@@ -42,7 +95,7 @@
         android:visibility="visible"
         android:layout_marginTop="16dp"
         android:layout_marginStart="16dp"
-        app:layout_constraintTop_toBottomOf="@id/financeLabelTextView"
+        app:layout_constraintTop_toBottomOf="@id/monthSelectorLayout"
         app:layout_constraintStart_toStartOf="parent"
         />
 
