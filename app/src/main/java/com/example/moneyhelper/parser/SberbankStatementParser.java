@@ -34,9 +34,11 @@ public class SberbankStatementParser {
     private final Context context;
     private final SimpleDateFormat dateFormat;
 
+
     public SberbankStatementParser(Context context) {
         this.context = context;
         this.dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+
     }
 
     /**
@@ -98,7 +100,9 @@ public class SberbankStatementParser {
                     Log.d(TAG, String.format("  Сумма: %s, Категория: %s, Описание: %s",
                             transaction.amount, transaction.category, transaction.description));
                 } else if (transaction != null && transaction.isIncome) {
-                    Log.d(TAG, "✗ Транзакция пропущена (доход): " + String.format("%s", transaction.amount));
+                    transactions.add(transaction);
+                    transaction.isIncome = true;
+//                    Log.d(TAG, "✗ Транзакция пропущена (доход): " + String.format("%s", transaction.amount));
                 } else {
                     Log.d(TAG, "✗ Транзакция не распознана");
                 }
@@ -129,6 +133,10 @@ public class SberbankStatementParser {
 
         // 1. Парсим дату и время
         transaction.date = parseDate(mainLine);
+
+
+
+
         Log.d(TAG, "Дата: " + transaction.date);
 
         // 2. Извлекаем категорию из основной строки
@@ -258,33 +266,35 @@ public class SberbankStatementParser {
     private List<Integer> extractAllAmounts(String line) {
         List<Integer> amounts = new ArrayList<>();
 
-        // Убираем код авторизации (6 цифр после времени), чтобы не путать с суммами
-        String cleanedLine = line.replaceFirst("\\d{2}:\\d{2}\\s+\\d{6}\\s+", "XX:XX XXXXXX ");
+        // 1. Очистка "мусора" (время и код авторизации), как было в оригинале
+        String cleanedLine = line.replaceFirst("\\d{2}:\\d{2}\\s+\\d{6}\\s+", " ");
 
-        Log.d(TAG, "  Очищенная строка: " + cleanedLine);
+        // 2. Убираем ВСЕ пробелы, как ты и предложил
+        // Пример: "Супермаркеты 349,97 36 975,65" -> "Супермаркеты349,9736975,65"
+        String noSpacesLine = cleanedLine.replaceAll("\\s+", "");
 
-        // Паттерн для поиска суммы: может быть +/-, пробелы между разрядами, точка или запятая
-        // ВАЖНО: должно быть ровно 2 цифры после точки/запятой (копейки)
-        Pattern amountPattern = Pattern.compile("([+-])?\\s*(\\d{1,3}(?:[,\\s]\\d{3})*[,.]\\d{2})(?!\\d)");
-        Matcher matcher = amountPattern.matcher(cleanedLine);
+        Log.d(TAG, "Строка без пробелов: " + noSpacesLine);
+
+        // Паттерн:
+        // ([^\\d])           -> Группа 1: Любой символ, КРОМЕ цифры (буква категории перед суммой)
+        // ([+-]?\\d+[,.]\\d{2}) -> Группа 2: Сама сумма (опционально знак +/-, цифры, точка/запятая, ровно 2 цифры)
+        Pattern pattern = Pattern.compile("([^\\d])([+-]?\\d+[,.]\\d{2})");
+        Matcher matcher = pattern.matcher(noSpacesLine);
 
         while (matcher.find()) {
-            String sign = matcher.group(1);
-            String amountStr = matcher.group(2)
-                    .replace(",", ".")
-                    .replaceAll("\\s+", "") // Убираем все пробелы
-                    .trim();
+            // matcher.group(1) - это буква перед суммой (нам она нужна только для проверки паттерна)
+            String amountStr = matcher.group(2); // Сама сумма, например "349,97" или "+109,00"
 
             try {
-                double amountP = Double.parseDouble(amountStr);
+                // Заменяем запятую на точку для парсинга Java
+                String parsableAmount = amountStr.replace(",", ".");
+
+                // Double.parseDouble отлично понимает "+" и "-" в начале строки
+                double amountP = Double.parseDouble(parsableAmount.replace(",", "."));
                 int amount = (int) Math.round(amountP);
 
-                // Проверяем что это похоже на сумму денег
-                if (amount > 0 && amount < 10000000) {
-                    // Учитываем знак
-                    if (sign != null && sign.equals("-")) {
-                        amount = -amount;
-                    }
+                // Проверка на адекватность суммы
+                if (amount != 0 && Math.abs(amount) < 10000000) {
                     amounts.add(amount);
                     Log.d(TAG, "  Найдена сумма: " + amount);
                 }

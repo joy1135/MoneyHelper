@@ -92,6 +92,18 @@
                         android:textStyle="bold"/>
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/emptyTextView"
+                    app:layout_constraintTop_toTopOf="@id/expensesRecyclerView"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:paddingHorizontal="40dp"
+                    android:paddingVertical="40dp"
+
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
                 <!-- Список расходов по категориям -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/expensesRecyclerView"

@@ -28,7 +28,7 @@ public class CategoryService {
 
     public CategoryService(Context context) {
         this.dbHelper = DatabaseHelper.getInstance(context);
-        this.dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        this.dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
     }
 
     /**
@@ -54,6 +54,7 @@ public class CategoryService {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         // SQL запрос для получения категорий с расходами и прогнозами
+        // Учитываем только расходы (is_income = 0 или NULL для обратной совместимости)
         String query =
                 "SELECT " +
                         "    uc.id as user_cat_id, " +
@@ -66,6 +67,7 @@ public class CategoryService {
                         "FROM user_categories uc " +
                         "JOIN categories c ON uc.cat_id = c.id " +
                         "LEFT JOIN monthly_expenses me ON me.user_cat_id = uc.id " +
+                        "    AND (me.is_income = 0 OR me.is_income IS NULL) " +
                         "LEFT JOIN dates d ON me.date_id = d.id " +
                         "LEFT JOIN predict p ON p.user_cat_id = uc.id " +
                         "WHERE uc.user_id = ? AND d.date = ?" +
@@ -312,11 +314,8 @@ public class CategoryService {
     
     /**
      * Получить общий доход за месяц
-     * TODO: Реализовать получение доходов из БД, если есть таблица доходов
      */
     public double getTotalIncome(Date month) {
-        // Пока возвращаем 0, так как доходы не хранятся в БД
-        // В будущем можно добавить таблицу incomes или использовать другую логику
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         
         Calendar cal = Calendar.getInstance();
@@ -324,19 +323,24 @@ public class CategoryService {
         cal.set(Calendar.DAY_OF_MONTH, 1);
         String monthStr = dateFormat.format(cal.getTime());
         
-        // Проверяем, есть ли таблица incomes
         try {
-            String query = "SELECT COALESCE(SUM(amount), 0) FROM incomes " +
-                          "WHERE user_id = ? AND date = ?";
+            // Получаем сумму доходов из monthly_expenses где is_income = 1
+            String query = "SELECT COALESCE(SUM(me.expenses), 0) " +
+                          "FROM monthly_expenses me " +
+                          "JOIN dates d ON me.date_id = d.id " +
+                          "JOIN user_categories uc ON me.user_cat_id = uc.id " +
+                          "WHERE uc.user_id = ? AND d.date = ? AND me.is_income = 1";
+            
             try (Cursor cursor = db.rawQuery(query, 
                     new String[]{String.valueOf(getCurrentUserId()), monthStr})) {
                 if (cursor.moveToFirst()) {
-                    return cursor.getDouble(0);
+                    double income = cursor.getDouble(0);
+                    Log.d(TAG, String.format("Доход за %s: %.2f", monthStr, income));
+                    return income;
                 }
             }
         } catch (Exception e) {
-            // Таблицы incomes нет, возвращаем 0
-            Log.d(TAG, "Таблица incomes не найдена, доходы не учитываются");
+            Log.e(TAG, "Ошибка при получении дохода", e);
         }
         
         return 0.0;

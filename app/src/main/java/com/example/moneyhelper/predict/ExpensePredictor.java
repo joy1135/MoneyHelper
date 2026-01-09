@@ -21,8 +21,8 @@ public class ExpensePredictor {
     private static final String TAG = "ExpensePredictor";
 
     private final SQLiteDatabase database;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-    private final SimpleDateFormat monthFormat = new SimpleDateFormat("MM-yyyy", Locale.getDefault());
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+    private final SimpleDateFormat monthFormat = new SimpleDateFormat("MM.yyyy", Locale.getDefault());
 
     public ExpensePredictor(SQLiteDatabase database) {
         this.database = database;

@@ -1,5 +1,6 @@
 package com.example.moneyhelper;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +39,7 @@ public class HomeFragment extends Fragment {
     private Button showButton;
     private ExecutorService executorService;
     private CategoryService categoryService;
+    private TextView emptyTextView;
     
     private List<Category> allCategories;
     private List<Category> displayedCategories;
@@ -48,6 +50,11 @@ public class HomeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        view.findViewById(R.id.emptyTextView).setOnClickListener((vv) -> {
+            Intent intent = new Intent(getContext(), StatementImportActivity.class);
+            startActivity(intent);
+        });
 
         // Инициализация кнопки из layout
         predictionButton = view.findViewById(R.id.predictionButton);
@@ -72,6 +79,7 @@ public class HomeFragment extends Fragment {
     private void initViews(View view) {
         balanceTextView = view.findViewById(R.id.balanceTextView);
         expensesRecyclerView = view.findViewById(R.id.expensesRecyclerView);
+        emptyTextView = view.findViewById(R.id.emptyTextView);
         showButton = view.findViewById(R.id.showButton);
     }
 
@@ -85,6 +93,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadData() {
+        resetEmptyState();
         // Загружаем данные в фоновом потоке
         new Thread(() -> {
             try {
@@ -95,6 +104,8 @@ public class HomeFragment extends Fragment {
                 
                 // Получаем все категории с расходами
                 allCategories = categoryService.getCategoriesForMonth(currentMonth);
+
+
                 
                 // Фильтруем категории с расходами > 0
                 List<Category> categoriesWithExpenses = new ArrayList<>();
@@ -118,6 +129,9 @@ public class HomeFragment extends Fragment {
                         updateBalance(balance);
                         updateExpensesList();
                         updateShowButton();
+                        if (displayedCategories.isEmpty()){
+                            showEmptyState();
+                        }
                     });
                 }
                 
@@ -131,6 +145,19 @@ public class HomeFragment extends Fragment {
                 }
             }
         }).start();
+    }
+
+    private void showEmptyState() {
+        expensesRecyclerView.setVisibility(View.GONE);
+        emptyTextView.setVisibility(View.VISIBLE);
+        emptyTextView.setText("Для начала импортируйте выписку (Нажмите сюда)");
+
+
+    }
+
+    private void resetEmptyState(){
+        expensesRecyclerView.setVisibility(View.VISIBLE);
+        emptyTextView.setVisibility(View.GONE);
     }
     
     private void updateBalance(double balance) {

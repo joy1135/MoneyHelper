@@ -59,12 +59,6 @@ public class StatementImportService {
 
             // 3. Импортируем транзакции
             for (SberbankStatementParser.Transaction transaction : transactions) {
-                // Пропускаем доходы
-                if (transaction.isIncome) {
-                    result.skippedTransactions++;
-                    continue;
-                }
-
                 // Проверяем, не импортирована ли уже эта транзакция
                 if (isDuplicate(db, transaction)) {
                     result.duplicateTransactions++;
@@ -82,11 +76,14 @@ public class StatementImportService {
                 // Получаем user_cat_id
                 long userCatId = getUserCategoryId(db, categoryId);
 
-                // Добавляем расход
+                // Добавляем транзакцию (расход или доход)
                 long expenseId = insertExpense(db, userCatId, transaction);
 
                 if (expenseId > 0) {
                     result.importedTransactions++;
+                    if (transaction.isIncome) {
+                        result.skippedTransactions++; // Используем это поле для подсчета доходов
+                    }
                 }
             }
 
@@ -178,7 +175,7 @@ public class StatementImportService {
     }
 
     /**
-     * Добавляет расход в БД
+     * Добавляет транзакцию (расход или доход) в БД
      */
     private long insertExpense(SQLiteDatabase db, long userCatId,
                                SberbankStatementParser.Transaction transaction) {
@@ -188,9 +185,10 @@ public class StatementImportService {
 
         ContentValues values = new ContentValues();
         values.put("user_cat_id", userCatId);
-        values.put("expenses", transaction.amount);
+        values.put("expenses", Math.abs(transaction.amount)); // Сохраняем абсолютное значение
         values.put("date_id", dateId);
         values.put("transaction_id", transaction.id);
+        values.put("is_income", transaction.isIncome ? 1 : 0); // 0 - расход, 1 - доход
 
         return db.insert("monthly_expenses", null, values);
     }
@@ -251,7 +249,7 @@ public class StatementImportService {
         cal.set(Calendar.DAY_OF_MONTH, 1);
 
 //        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
         String dateStr = dateFormat.format(cal.getTime());
 
         // Ищем существующую запись
@@ -362,7 +360,7 @@ public class StatementImportService {
             }
 
             if (skippedTransactions > 0) {
-                sb.append("Пропущено (доходы): ").append(skippedTransactions).append("\n");
+                sb.append("Импортировано доходов: ").append(skippedTransactions).append("\n");
             }
 
             if (predictionsCreated > 0) {
