@@ -25,6 +25,7 @@ public class StatementImportActivity extends AppCompatActivity {
     private TextView tvFileName;
     private TextView tvStatus;
     private ProgressBar progressBar;
+    private Button btnGoHome;
 
     private Uri selectedFileUri;
     private StatementImportService importService;
@@ -69,10 +70,11 @@ public class StatementImportActivity extends AppCompatActivity {
         tvFileName = findViewById(R.id.tvFileName);
         tvStatus = findViewById(R.id.tvStatus);
         progressBar = findViewById(R.id.progressBar);
-
+        btnGoHome = findViewById(R.id.btnGoHome);
         btnImport.setEnabled(false);
         progressBar.setVisibility(ProgressBar.GONE);
     }
+
 
     private void initService() {
         importService = new StatementImportService(this);
@@ -86,6 +88,15 @@ public class StatementImportActivity extends AppCompatActivity {
                 startImport();
             }
         });
+
+        btnGoHome.setOnClickListener(v -> {
+
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        });
+
     }
 
     /**

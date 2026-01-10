@@ -19,7 +19,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
     private static final String DB_NAME = "money_helper.db";
-    private static final int DB_VERSION = 3;
+    private static final int DB_VERSION = 6;
 
     private static DatabaseHelper instance;
     private static final Object instanceLock = new Object();

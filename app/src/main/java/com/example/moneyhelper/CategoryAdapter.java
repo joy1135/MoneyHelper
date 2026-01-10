@@ -79,6 +79,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             if (iconTextView != null) {
                 iconTextView.setText(category.getIcon());
             }
+            else {
+
+            }
 
             // Название
             categoryNameTextView.setText(category.getName());

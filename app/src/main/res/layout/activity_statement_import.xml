@@ -120,6 +120,17 @@
         android:textColor="@android:color/white"
         android:enabled="false"/>
 
+    <Button
+        android:id="@+id/btnGoHome"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="12dp"
+        android:text="🏠 На главный экран"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:backgroundTint="#9E9E9E"
+        android:textColor="@android:color/white"/>
+
     <!-- Дополнительная информация -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
