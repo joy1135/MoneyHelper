@@ -37,6 +37,50 @@ public class CategoryService {
     public List<Category> getAllCategories() {
         return getCategoriesForMonth(new Date());
     }
+    
+    /**
+     * Получить все категории пользователя (без фильтрации по месяцу)
+     * Используется для выбора категории при добавлении расхода
+     */
+    public List<Category> getAllUserCategories() {
+        List<Category> categories = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query =
+                "SELECT " +
+                        "    uc.id as user_cat_id, " +
+                        "    uc.cat_id, " +
+                        "    uc.name, " +
+                        "    c.icon, " +
+                        "    uc.fixed " +
+                        "FROM user_categories uc " +
+                        "JOIN categories c ON uc.cat_id = c.id " +
+                        "WHERE uc.user_id = ? " +
+                        "ORDER BY uc.name";
+
+        try (Cursor cursor = db.rawQuery(query,
+                new String[]{String.valueOf(getCurrentUserId())})) {
+
+            while (cursor.moveToNext()) {
+                long userCatId = cursor.getLong(0);
+                long catId = cursor.getLong(1);
+                String name = cursor.getString(2);
+                String icon = cursor.getString(3);
+                boolean isFixed = cursor.getInt(4) == 1;
+
+                Category category = new Category(userCatId, catId, name, icon,
+                        isFixed, 0, 0);
+                categories.add(category);
+            }
+
+            Log.d(TAG, String.format("Загружено %d категорий пользователя", categories.size()));
+
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при загрузке категорий пользователя", e);
+        }
+
+        return categories;
+    }
 
     /**
      * Получить категории за определенный месяц
@@ -250,6 +294,93 @@ public class CategoryService {
         }
     }
 
+    /**
+     * Добавить расход для категории на указанный месяц
+     * @param userCategoryId ID категории пользователя
+     * @param amount Сумма расхода
+     * @param month Месяц для добавления расхода (если null, используется текущий месяц)
+     * @return true если успешно добавлено
+     */
+    public boolean addExpense(long userCategoryId, double amount, Date month) {
+        if (amount <= 0) {
+            Log.e(TAG, "Сумма расхода должна быть больше 0");
+            return false;
+        }
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        
+        try {
+            db.beginTransaction();
+            
+            // Получаем или создаем date_id для указанного месяца
+            Calendar cal = Calendar.getInstance();
+            if (month != null) {
+                cal.setTime(month);
+            }
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            
+            String monthStr = dateFormat.format(cal.getTime());
+            
+            // Ищем существующую запись в dates
+            long dateId;
+            try (Cursor cursor = db.query(
+                    "dates",
+                    new String[]{"id"},
+                    "date = ?",
+                    new String[]{monthStr},
+                    null, null, null)) {
+                
+                if (cursor.moveToFirst()) {
+                    dateId = cursor.getLong(0);
+                } else {
+                    // Создаем новую запись
+                    ContentValues dateValues = new ContentValues();
+                    dateValues.put("date", monthStr);
+                    dateId = db.insert("dates", null, dateValues);
+                }
+            }
+            
+            // Добавляем расход
+            ContentValues values = new ContentValues();
+            values.put("user_cat_id", userCategoryId);
+            values.put("expenses", amount);
+            values.put("date_id", dateId);
+            values.put("is_income", 0); // 0 - расход
+            
+            long result = db.insert("monthly_expenses", null, values);
+            
+            db.setTransactionSuccessful();
+            
+            if (result > 0) {
+                Log.d(TAG, String.format("Добавлен расход %.2f для категории %d", amount, userCategoryId));
+                return true;
+            } else {
+                Log.e(TAG, "Ошибка добавления расхода");
+                return false;
+            }
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при добавлении расхода", e);
+            return false;
+        } finally {
+            db.endTransaction();
+        }
+    }
+    
+    /**
+     * Добавить расход для категории на текущий месяц
+     * @param userCategoryId ID категории пользователя
+     * @param amount Сумма расхода
+     * @return true если успешно добавлено
+     */
+    public boolean addExpense(long userCategoryId, double amount) {
+        return addExpense(userCategoryId, amount, null);
+    }
+    
     /**
      * Получить или создать глобальную категорию
      */

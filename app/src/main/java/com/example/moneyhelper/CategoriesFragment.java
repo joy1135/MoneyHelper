@@ -3,11 +3,15 @@ package com.example.moneyhelper;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -231,26 +235,127 @@ public class CategoriesFragment extends Fragment {
     }
 
     /**
-     * Диалог добавления категории
+     * Диалог добавления расхода
      */
     private void showAddCategoryDialog() {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-//
-//        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_category, null);
-//
-//        // TODO: Добавить поля для ввода имени и выбора иконки
-//
-//        builder.setView(dialogView)
-//                .setTitle("Новая категория")
-//                .setPositiveButton("Добавить", (dialog, which) -> {
-//                    // TODO: Получить данные из полей и создать категорию
-//                    String name = "Новая категория";
-//                    String icon = "📦";
-//
-//                    createCategory(name, icon, false);
-//                })
-//                .setNegativeButton("Отмена", null)
-//                .show();
+        // Загружаем категории в фоновом потоке
+        new Thread(() -> {
+            List<Category> categories = categoryService.getAllUserCategories();
+            
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (categories.isEmpty()) {
+                        Toast.makeText(getContext(),
+                                "Нет доступных категорий. Сначала создайте категорию.",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    showAddExpenseDialog(categories);
+                });
+            }
+        }).start();
+    }
+    
+    /**
+     * Показать диалог добавления расхода
+     */
+    private void showAddExpenseDialog(List<Category> categories) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Добавить расход");
+        
+        // Создаем layout для диалога
+        View dialogView = getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
+        
+        // Создаем контейнер для полей
+        android.widget.LinearLayout container = new android.widget.LinearLayout(requireContext());
+        container.setOrientation(android.widget.LinearLayout.VERTICAL);
+        container.setPadding(50, 40, 50, 10);
+        
+        // Spinner для выбора категории
+        TextView categoryLabel = new TextView(requireContext());
+        categoryLabel.setText("Категория:");
+        categoryLabel.setTextSize(16);
+        categoryLabel.setPadding(0, 0, 0, 10);
+        container.addView(categoryLabel);
+        
+        Spinner categorySpinner = new Spinner(requireContext());
+        List<String> categoryNames = new ArrayList<>();
+        for (Category cat : categories) {
+            categoryNames.add(cat.getIcon() + " " + cat.getName());
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, categoryNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categorySpinner.setAdapter(adapter);
+        container.addView(categorySpinner);
+        
+        // Поле для суммы
+        TextView amountLabel = new TextView(requireContext());
+        amountLabel.setText("Сумма (₽):");
+        amountLabel.setTextSize(16);
+        amountLabel.setPadding(0, 30, 0, 10);
+        container.addView(amountLabel);
+        
+        EditText amountEditText = new EditText(requireContext());
+        amountEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        amountEditText.setHint("Введите сумму");
+        container.addView(amountEditText);
+        
+        builder.setView(container);
+        
+        builder.setPositiveButton("Добавить", (dialog, which) -> {
+            String amountStr = amountEditText.getText().toString().trim();
+            if (amountStr.isEmpty()) {
+                Toast.makeText(getContext(), "Введите сумму", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            try {
+                double amount = Double.parseDouble(amountStr);
+                if (amount <= 0) {
+                    Toast.makeText(getContext(), "Сумма должна быть больше 0", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                int selectedPosition = categorySpinner.getSelectedItemPosition();
+                if (selectedPosition >= 0 && selectedPosition < categories.size()) {
+                    Category selectedCategory = categories.get(selectedPosition);
+                    addExpense(selectedCategory.getUserCategoryId(), amount);
+                }
+            } catch (NumberFormatException e) {
+                Toast.makeText(getContext(), "Некорректная сумма", Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+        builder.setNegativeButton("Отмена", null);
+        builder.show();
+    }
+    
+    /**
+     * Добавить расход
+     */
+    private void addExpense(long userCategoryId, double amount) {
+        new Thread(() -> {
+            // Используем выбранный месяц
+            Date monthDate = selectedMonth.getTime();
+            boolean success = categoryService.addExpense(userCategoryId, amount, monthDate);
+            
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (success) {
+                        Toast.makeText(getContext(),
+                                "Расход добавлен",
+                                Toast.LENGTH_SHORT).show();
+                        loadCategories(); // Перезагружаем список
+                    } else {
+                        Toast.makeText(getContext(),
+                                "Ошибка добавления расхода",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }).start();
     }
 
     /**
