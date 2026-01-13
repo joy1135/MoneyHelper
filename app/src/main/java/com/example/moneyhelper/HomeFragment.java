@@ -1,6 +1,5 @@
 package com.example.moneyhelper;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,10 +50,7 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        view.findViewById(R.id.emptyTextView).setOnClickListener((vv) -> {
-            Intent intent = new Intent(getContext(), StatementImportActivity.class);
-            startActivity(intent);
-        });
+        // emptyTextView больше не кликабелен, так как отображаются прогнозы
 
         // Инициализация кнопки из layout
         predictionButton = view.findViewById(R.id.predictionButton);
@@ -102,19 +98,17 @@ public class HomeFragment extends Fragment {
                 // Получаем баланс
                 double balance = categoryService.getBalance(currentMonth);
                 
-                // Получаем все категории с расходами
-                allCategories = categoryService.getCategoriesForMonth(currentMonth);
-
-
+                // Получаем все категории с прогнозами на следующий месяц
+                allCategories = categoryService.getCategoriesWithPredictions();
                 
-                // Фильтруем категории с расходами > 0
-                List<Category> categoriesWithExpenses = new ArrayList<>();
+                // Фильтруем категории с прогнозами > 0
+                List<Category> categoriesWithPredictions = new ArrayList<>();
                 for (Category category : allCategories) {
-                    if (category.getCurrentExpense() > 0) {
-                        categoriesWithExpenses.add(category);
+                    if (category.getBudget() > 0) {
+                        categoriesWithPredictions.add(category);
                     }
                 }
-                allCategories = categoriesWithExpenses;
+                allCategories = categoriesWithPredictions;
                 
                 // Берем топ-3 для начального отображения
                 displayedCategories = new ArrayList<>();
@@ -150,7 +144,7 @@ public class HomeFragment extends Fragment {
     private void showEmptyState() {
         expensesRecyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
-        emptyTextView.setText("Для начала импортируйте выписку (Нажмите сюда)");
+        emptyTextView.setText("Нет прогнозов. Создайте прогнозы, нажав кнопку \"Спрогнозировать расходы\"");
 
 
     }
@@ -162,7 +156,7 @@ public class HomeFragment extends Fragment {
     
     private void updateBalance(double balance) {
         DecimalFormat df = new DecimalFormat("#,###", new DecimalFormatSymbols(Locale.getDefault()));
-        String balanceText = String.format(Locale.getDefault(), "Бал. доход-расход: %s₽", df.format(balance));
+        String balanceText = String.format(Locale.getDefault(), "%s₽", df.format(balance));
         balanceTextView.setText(balanceText);
         
         // Меняем цвет в зависимости от баланса
@@ -174,12 +168,13 @@ public class HomeFragment extends Fragment {
     }
     
     private void updateExpensesList() {
-        // Конвертируем Category в Expense для отображения
+        // Конвертируем Category в Expense для отображения прогнозов
         List<com.example.moneyhelper.DataTypes.Expense> expenses = new ArrayList<>();
         for (Category category : displayedCategories) {
+            // Используем budget (прогноз) вместо currentExpense
             expenses.add(new com.example.moneyhelper.DataTypes.Expense(
                     category.getIcon() + " " + category.getName(),
-                    (int) category.getCurrentExpense(),
+                    (int) category.getBudget(),
                     false
             ));
         }

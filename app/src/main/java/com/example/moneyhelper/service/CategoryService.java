@@ -313,6 +313,71 @@ public class CategoryService {
     }
     
     /**
+     * Получить категории с прогнозами на следующий месяц из таблицы predict
+     * Сортирует по убыванию прогноза
+     */
+    public List<Category> getCategoriesWithPredictions() {
+        List<Category> categories = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // SQL запрос для получения категорий с прогнозами из таблицы predict
+        String query =
+                "SELECT " +
+                        "    uc.id as user_cat_id, " +
+                        "    uc.cat_id, " +
+                        "    uc.name, " +
+                        "    c.icon, " +
+                        "    uc.fixed, " +
+                        "    COALESCE(p.predict, 0) as prediction " +
+                        "FROM predict p " +
+                        "JOIN user_categories uc ON p.user_cat_id = uc.id " +
+                        "JOIN categories c ON uc.cat_id = c.id " +
+                        "WHERE uc.user_id = ? " +
+                        "ORDER BY p.predict DESC";
+
+        try (Cursor cursor = db.rawQuery(query,
+                new String[]{String.valueOf(getCurrentUserId())})) {
+
+            double totalPrediction = 0;
+            List<Category> tempList = new ArrayList<>();
+
+            // Первый проход - собираем категории и считаем общую сумму прогнозов
+            while (cursor.moveToNext()) {
+                long userCatId = cursor.getLong(0);
+                long catId = cursor.getLong(1);
+                String name = cursor.getString(2);
+                String icon = cursor.getString(3);
+                boolean isFixed = cursor.getInt(4) == 1;
+                double prediction = cursor.getDouble(5);
+
+                // Создаем Category с прогнозом в поле budget, а currentExpense = 0
+                Category category = new Category(userCatId, catId, name, icon,
+                        isFixed, 0, prediction);
+
+                tempList.add(category);
+                totalPrediction += prediction;
+            }
+
+            // Второй проход - вычисляем проценты от общей суммы прогнозов
+            for (Category category : tempList) {
+                if (totalPrediction > 0) {
+                    int percentage = (int) ((category.getBudget() / totalPrediction) * 100);
+                    category.setPercentage(percentage);
+                }
+                categories.add(category);
+            }
+
+            Log.d(TAG, String.format("Загружено %d категорий с прогнозами, общая сумма прогнозов: %.2f",
+                    categories.size(), totalPrediction));
+
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при загрузке категорий с прогнозами", e);
+        }
+
+        return categories;
+    }
+    
+    /**
      * Получить общий доход за месяц
      */
     public double getTotalIncome(Date month) {

@@ -66,7 +66,7 @@ public class Category {
     }
 
     public String getIcon() {
-        return icon;
+        return icon == null ? "" : icon;
     }
 
     public boolean isFixed() {
