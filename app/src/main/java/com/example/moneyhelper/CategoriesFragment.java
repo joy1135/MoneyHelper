@@ -53,17 +53,14 @@ public class CategoriesFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_categories, container, false);
 
-        // Кнопка импорта
         v.findViewById(R.id.importTextView).setOnClickListener((vv) -> {
             Intent intent = new Intent(getContext(), StatementImportActivity.class);
             startActivity(intent);
         });
 
-        // Инициализация сервиса
         categoryService = new CategoryService(getContext());
         monthFormat = new SimpleDateFormat("LLLL yyyy", new Locale("ru"));
-        
-        // Инициализация выбранного месяца (текущий месяц)
+
         selectedMonth = Calendar.getInstance();
         selectedMonth.set(Calendar.DAY_OF_MONTH, 1);
         selectedMonth.set(Calendar.HOUR_OF_DAY, 0);
@@ -94,12 +91,10 @@ public class CategoriesFragment extends Fragment {
         monthNextButton = view.findViewById(R.id.monthNextButton);
 
         addButton.setOnClickListener(v -> showAddCategoryDialog());
-        
-        // Обработчики для переключения месяцев
+
         monthPrevButton.setOnClickListener(v -> navigateMonth(-1));
         monthNextButton.setOnClickListener(v -> navigateMonth(1));
-        
-        // Обновляем отображение месяца
+
         updateMonthDisplay();
     }
 
@@ -119,27 +114,19 @@ public class CategoriesFragment extends Fragment {
         categoriesRecyclerView.setAdapter(categoryAdapter);
     }
 
-    /**
-     * Загрузка категорий из БД
-     */
     private void loadCategories() {
-        // Показываем прогресс
         progressBar.setVisibility(View.VISIBLE);
         categoriesRecyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.GONE);
 
-        // Загружаем в фоновом потоке
         new Thread(() -> {
             try {
-                // Получаем категории за выбранный месяц
                 Date monthDate = selectedMonth.getTime();
                 List<Category> categories = categoryService.getCategoriesForMonth(monthDate);
 
-                // Получаем статистику
                 CategoryService.CategoryStats stats =
                         categoryService.getCategoryStats(monthDate);
 
-                // Обновляем UI в главном потоке
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
@@ -164,26 +151,15 @@ public class CategoriesFragment extends Fragment {
             }
         }).start();
     }
-
-
-
-    /**
-     * Показать список категорий
-     */
     private void showCategories(List<Category> categories, CategoryService.CategoryStats stats) {
         categoriesRecyclerView.setVisibility(View.VISIBLE);
         emptyTextView.setVisibility(View.GONE);
 
-        // Обновляем адаптер
         categoryAdapter.updateCategories(categories);
 
-        // Обновляем статистику
         updateStats(stats);
     }
 
-    /**
-     * Показать пустое состояние
-     */
     private void showEmptyState() {
         categoriesRecyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
@@ -194,9 +170,6 @@ public class CategoriesFragment extends Fragment {
         }
     }
 
-    /**
-     * Обновить статистику
-     */
     private void updateStats(CategoryService.CategoryStats stats) {
         if (statsTextView != null) {
             statsTextView.setVisibility(View.VISIBLE);
@@ -214,19 +187,13 @@ public class CategoriesFragment extends Fragment {
             statsTextView.setText(statsText);
         }
     }
-    
-    /**
-     * Переключение месяца
-     */
+
     private void navigateMonth(int direction) {
         selectedMonth.add(Calendar.MONTH, direction);
         updateMonthDisplay();
         loadCategories();
     }
-    
-    /**
-     * Обновить отображение месяца
-     */
+
     private void updateMonthDisplay() {
         if (monthTextView != null) {
             String monthName = monthFormat.format(selectedMonth.getTime());
@@ -234,11 +201,7 @@ public class CategoriesFragment extends Fragment {
         }
     }
 
-    /**
-     * Диалог добавления расхода
-     */
     private void showAddCategoryDialog() {
-        // Загружаем категории в фоновом потоке
         new Thread(() -> {
             List<Category> categories = categoryService.getAllUserCategories();
             
@@ -256,23 +219,17 @@ public class CategoriesFragment extends Fragment {
             }
         }).start();
     }
-    
-    /**
-     * Показать диалог добавления расхода
-     */
+
     private void showAddExpenseDialog(List<Category> categories) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Добавить расход");
-        
-        // Создаем layout для диалога
+
         View dialogView = getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
-        
-        // Создаем контейнер для полей
+
         android.widget.LinearLayout container = new android.widget.LinearLayout(requireContext());
         container.setOrientation(android.widget.LinearLayout.VERTICAL);
         container.setPadding(50, 40, 50, 10);
-        
-        // Spinner для выбора категории
+
         TextView categoryLabel = new TextView(requireContext());
         categoryLabel.setText("Категория:");
         categoryLabel.setTextSize(16);
@@ -289,8 +246,7 @@ public class CategoriesFragment extends Fragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categorySpinner.setAdapter(adapter);
         container.addView(categorySpinner);
-        
-        // Поле для суммы
+
         TextView amountLabel = new TextView(requireContext());
         amountLabel.setText("Сумма (₽):");
         amountLabel.setTextSize(16);
@@ -331,13 +287,9 @@ public class CategoriesFragment extends Fragment {
         builder.setNegativeButton("Отмена", null);
         builder.show();
     }
-    
-    /**
-     * Добавить расход
-     */
+
     private void addExpense(long userCategoryId, double amount) {
         new Thread(() -> {
-            // Используем выбранный месяц
             Date monthDate = selectedMonth.getTime();
             boolean success = categoryService.addExpense(userCategoryId, amount, monthDate);
             
@@ -347,7 +299,7 @@ public class CategoriesFragment extends Fragment {
                         Toast.makeText(getContext(),
                                 "Расход добавлен",
                                 Toast.LENGTH_SHORT).show();
-                        loadCategories(); // Перезагружаем список
+                        loadCategories();
                     } else {
                         Toast.makeText(getContext(),
                                 "Ошибка добавления расхода",
@@ -358,9 +310,6 @@ public class CategoriesFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * Создать новую категорию
-     */
     private void createCategory(String name, String icon, boolean isFixed) {
         new Thread(() -> {
             long categoryId = categoryService.createCategory(name, icon, isFixed);
@@ -371,7 +320,7 @@ public class CategoriesFragment extends Fragment {
                         Toast.makeText(getContext(),
                                 "Категория создана",
                                 Toast.LENGTH_SHORT).show();
-                        loadCategories(); // Перезагружаем список
+                        loadCategories();
                     } else {
                         Toast.makeText(getContext(),
                                 "Ошибка создания категории",
@@ -382,9 +331,6 @@ public class CategoriesFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * Показать детали категории
-     */
     private void showCategoryDetails(Category category) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
@@ -407,9 +353,6 @@ public class CategoriesFragment extends Fragment {
                 .show();
     }
 
-    /**
-     * Показать опции категории (редактировать/удалить)
-     */
     private void showCategoryOptions(Category category) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
@@ -418,10 +361,10 @@ public class CategoriesFragment extends Fragment {
         builder.setTitle(category.getName())
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
-                        case 0: // Редактировать
+                        case 0:
                             showEditCategoryDialog(category);
                             break;
-                        case 1: // Удалить
+                        case 1:
                             showDeleteConfirmation(category);
                             break;
                     }
@@ -429,19 +372,12 @@ public class CategoriesFragment extends Fragment {
                 .show();
     }
 
-    /**
-     * Диалог редактирования категории
-     */
     private void showEditCategoryDialog(Category category) {
-        // TODO: Реализовать редактирование
         Toast.makeText(getContext(),
                 "Редактирование будет добавлено",
                 Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Подтверждение удаления категории
-     */
     private void showDeleteConfirmation(Category category) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
@@ -455,9 +391,6 @@ public class CategoriesFragment extends Fragment {
                 .show();
     }
 
-    /**
-     * Удалить категорию
-     */
     private void deleteCategory(Category category) {
         new Thread(() -> {
             boolean success = categoryService.deleteCategory(category.getUserCategoryId());
@@ -468,7 +401,7 @@ public class CategoriesFragment extends Fragment {
                         Toast.makeText(getContext(),
                                 "Категория удалена",
                                 Toast.LENGTH_SHORT).show();
-                        loadCategories(); // Перезагружаем список
+                        loadCategories();
                     } else {
                         Toast.makeText(getContext(),
                                 "Ошибка удаления категории",
@@ -482,7 +415,6 @@ public class CategoriesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Перезагружаем данные при возвращении на экран
         loadCategories();
     }
 }

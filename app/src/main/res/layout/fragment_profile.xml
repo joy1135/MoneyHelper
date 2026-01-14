@@ -1,172 +1,67 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-  >
+    android:layout_height="match_parent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Заголовок -->
         <TextView
-            android:id="@+id/titleTextView"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvProfileTitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Личный Кабинет"
+            android:text="Личный кабинет"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/black"
             android:layout_marginTop="16dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            android:gravity="center"
+            />
 
-        <!-- Учёт финансов -->
-        <TextView
-            android:id="@+id/financeLabelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Учёт финансов"
-            android:textSize="14sp"
-            android:textColor="@color/gray"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/titleTextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
-
-        <!-- Карточка с календарём -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/calendarCardView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="24dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
-            app:layout_constraintTop_toBottomOf="@id/financeLabelTextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvMoney"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_weight="1"
+                android:textSize="20sp"
+                android:text="0 ₽"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Календарь расходов"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black"/>
+            <Button
+                android:id="@+id/btnEditMoney"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Изменить доход"/>
+        </LinearLayout>
 
-                <!-- Календарь -->
-                <CalendarView
-                    android:id="@+id/calendarView"
-                    android:layout_width="match_parent"
-                    android:layout_height="300dp"
-                    android:layout_marginTop="12dp"/>
-
-                <!-- Ближайшие расходы -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Ближайшие расходы"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black"/>
-
-                <!-- Список ближайших расходов -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/upcomingExpensesRecyclerView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:nestedScrollingEnabled="false"/>
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Карточка с доходами -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/incomeCardView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
-            app:layout_constraintTop_toBottomOf="@id/calendarCardView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
 
-            <LinearLayout
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCategories"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:clipToPadding="false"
+                android:scrollbars="vertical"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Доходы"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black"/>
+            <Button
+                android:id="@+id/btnEditCategories"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Добавить категорию"
+                android:layout_marginTop="12dp"/>
+        </LinearLayout>
 
-                <!-- Заголовки столбцов -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="16dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Категория"
-                        android:textSize="14sp"
-                        android:textColor="@color/gray"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Доход"
-                        android:textSize="14sp"
-                        android:textColor="@color/gray"/>
-
-                </LinearLayout>
-
-                <!-- Список доходов -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/incomesRecyclerView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:nestedScrollingEnabled="false"/>
-
-                <!-- Кнопка Добавить -->
-                <Button
-                    android:id="@+id/addButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="16dp"
-                    android:text="Добавить"
-                    android:backgroundTint="#E0E0E0"
-                    android:textColor="@color/black"/>
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </ScrollView>

@@ -88,6 +88,7 @@ public class Category {
     public Date getMonthDate() {
         return monthDate;
     }
+    public long getCatId() { return categoryId; }
 
     // Сеттеры
     public void setUserCategoryId(long userCategoryId) {
@@ -163,5 +164,9 @@ public class Category {
     public String toString() {
         return String.format("Category{name='%s', expense=%.2f, budget=%.2f, percentage=%d%%}",
                 name, currentExpense, budget, percentage);
+    }
+
+    public String getDisplayName() {
+        return name;
     }
 }

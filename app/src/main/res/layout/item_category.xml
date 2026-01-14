@@ -14,14 +14,12 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Верхняя строка: иконка, название, процент -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <!-- Иконка категории -->
             <TextView
                 android:id="@+id/iconTextView"
                 android:layout_width="40dp"
@@ -31,7 +29,6 @@
                 android:gravity="center"
                 android:layout_marginEnd="12dp"/>
 
-            <!-- Название категории -->
             <TextView
                 android:id="@+id/categoryNameTextView"
                 android:layout_width="0dp"
@@ -42,7 +39,6 @@
                 android:textStyle="bold"
                 android:textColor="@android:color/black"/>
 
-            <!-- Процент от общих расходов -->
             <TextView
                 android:id="@+id/percentageTextView"
                 android:layout_width="wrap_content"
@@ -54,7 +50,6 @@
 
         </LinearLayout>
 
-        <!-- Текущие расходы -->
         <TextView
             android:id="@+id/expenseTextView"
             android:layout_width="wrap_content"
@@ -66,7 +61,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginStart="52dp"/>
 
-        <!-- Бюджет и разница -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -95,7 +89,6 @@
 
         </LinearLayout>
 
-        <!-- ProgressBar выполнения бюджета -->
         <ProgressBar
             android:id="@+id/budgetProgressBar"
             style="?android:attr/progressBarStyleHorizontal"
