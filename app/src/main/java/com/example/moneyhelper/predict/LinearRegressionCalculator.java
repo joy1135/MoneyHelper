@@ -1,14 +1,15 @@
 package com.example.moneyhelper.predict;
-import android.util.Log;
 
+import android.util.Log;
 import java.util.List;
+
 public class LinearRegressionCalculator {
     private static final String TAG = "LinearRegression";
 
     public static class RegressionResult {
-        public double slope;
-        public double intercept;
-        public double nextPrediction;
+        public double slope;           // наклон линии
+        public double intercept;       // пересечение с осью Y
+        public double nextPrediction;  // прогноз для следующего X
         public boolean isValid;
         public String errorMessage;
 
@@ -17,6 +18,9 @@ public class LinearRegressionCalculator {
         }
     }
 
+    /**
+     * Вычисляет линейную регрессию для произвольных X и Y
+     */
     public static RegressionResult calculateRegression(List<Double> xValues, List<Double> yValues) {
         RegressionResult result = new RegressionResult();
 
@@ -26,9 +30,8 @@ public class LinearRegressionCalculator {
         }
 
         int n = xValues.size();
-
         if (n < 2) {
-            result.errorMessage = "Недостаточно данных для построения регрессии. Нужно минимум 2 месяца.";
+            result.errorMessage = "Недостаточно данных для построения регрессии. Нужно минимум 2 точки.";
             return result;
         }
 
@@ -38,7 +41,6 @@ public class LinearRegressionCalculator {
             for (int i = 0; i < n; i++) {
                 double x = xValues.get(i);
                 double y = yValues.get(i);
-
                 sumX += x;
                 sumY += y;
                 sumXY += x * y;
@@ -48,27 +50,29 @@ public class LinearRegressionCalculator {
             Log.d(TAG, String.format("n=%d, sumX=%.2f, sumY=%.2f, sumXY=%.2f, sumX2=%.2f",
                     n, sumX, sumY, sumXY, sumX2));
 
-            double numerator = n * sumXY - sumX * sumY;
             double denominator = n * sumX2 - sumX * sumX;
-
-            if (Math.abs(denominator) < 0.000001) {
+            if (Math.abs(denominator) < 1e-10) {
                 result.errorMessage = "Деление на ноль при вычислении наклона";
                 return result;
             }
 
-            result.slope = numerator / denominator;
-
+            result.slope = (n * sumXY - sumX * sumY) / denominator;
             result.intercept = (sumY - result.slope * sumX) / n;
 
-            result.nextPrediction = result.slope * (n + 1) + result.intercept;
+            // Прогноз для следующего X: последний X + шаг (если шаг = 1)
+            double lastX = xValues.get(n - 1);
+            double step = (n > 1) ? (xValues.get(n - 1) - xValues.get(n - 2)) : 1.0;
+            result.nextPrediction = result.slope * (lastX + step) + result.intercept;
 
+            // Защита от отрицательного прогноза
             if (result.nextPrediction < 0) {
                 result.nextPrediction = 0;
                 Log.w(TAG, "Предсказание отрицательное, установлено в 0");
             }
 
             result.isValid = true;
-            Log.d(TAG, String.format("Результат: a=%.2f, b=%.2f, предсказание=%.2f",
+
+            Log.d(TAG, String.format("Результат регрессии: a=%.2f, b=%.2f, прогноз=%.2f",
                     result.slope, result.intercept, result.nextPrediction));
 
         } catch (Exception e) {
@@ -78,32 +82,20 @@ public class LinearRegressionCalculator {
 
         return result;
     }
-    public static double predictNextValue(List<Double> values) {
-        if (values == null || values.size() < 2) {
-            return -1;
+
+    /**
+     * Удобный метод для простого массива Y с X = 1,2,3...
+     */
+    public static double predictNextValue(List<Double> yValues) {
+        if (yValues == null || yValues.size() < 2) return -1;
+
+        // Создаём X = 1,2,3...
+        List<Double> xValues = new java.util.ArrayList<>();
+        for (int i = 0; i < yValues.size(); i++) {
+            xValues.add((double)(i + 1));
         }
 
-        double[] xValues = new double[values.size()];
-        for (int i = 0; i < values.size(); i++) {
-            xValues[i] = i + 1;
-        }
-
-        double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-        int n = values.size();
-
-        for (int i = 0; i < n; i++) {
-            double x = xValues[i];
-            double y = values.get(i);
-
-            sumX += x;
-            sumY += y;
-            sumXY += x * y;
-            sumX2 += x * x;
-        }
-
-        double a = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        double b = (sumY - a * sumX) / n;
-
-        return a * (n + 1) + b;
+        RegressionResult res = calculateRegression(xValues, yValues);
+        return res.isValid ? res.nextPrediction : -1;
     }
 }

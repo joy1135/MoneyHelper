@@ -145,13 +145,12 @@ public class ExpensePredictor {
     private List<ExpenseData> getMonthlyExpensesForCategory(int userCatId) {
         List<ExpenseData> result = new ArrayList<>();
         Map<String, Double> monthlyTotals = new HashMap<>();
-        List<String> monthKeys = new ArrayList<>();
 
+        // 1. Собираем все расходы по месяцам
         String query = "SELECT me.expenses, d.date " +
                 "FROM monthly_expenses me " +
                 "JOIN dates d ON me.date_id = d.id " +
-                "WHERE me.user_cat_id = ? " +
-                "ORDER BY d.date";
+                "WHERE me.user_cat_id = ?";
 
         Cursor cursor = null;
         try {
@@ -165,29 +164,13 @@ public class ExpensePredictor {
                     Date date = dateFormat.parse(dateStr);
                     String monthKey = monthFormat.format(date);
 
-                    // Суммируем расходы за месяц
                     double currentTotal = monthlyTotals.getOrDefault(monthKey, 0.0);
                     monthlyTotals.put(monthKey, currentTotal + expenses);
-
-                    // Сохраняем порядок месяцев
-                    if (!monthKeys.contains(monthKey)) {
-                        monthKeys.add(monthKey);
-                    }
 
                 } catch (ParseException e) {
                     Log.w(TAG, "Ошибка парсинга даты: " + dateStr, e);
                 }
             }
-
-            // Создаем список ExpenseData в правильном порядке
-            for (int i = 0; i < monthKeys.size(); i++) {
-                String monthKey = monthKeys.get(i);
-                double total = monthlyTotals.get(monthKey);
-                result.add(new ExpenseData(monthKey, total, i + 1));
-            }
-
-            Log.d(TAG, "Найдено " + result.size() + " месяцев данных для категории " + userCatId);
-
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при получении расходов для категории " + userCatId, e);
         } finally {
@@ -196,8 +179,53 @@ public class ExpensePredictor {
             }
         }
 
+        if (monthlyTotals.isEmpty()) {
+            return result; // нет данных
+        }
+
+        // 2. Сортируем месяцы по дате
+        List<String> sortedMonths = new ArrayList<>(monthlyTotals.keySet());
+        sortedMonths.sort((m1, m2) -> {
+            try {
+                return monthFormat.parse(m1).compareTo(monthFormat.parse(m2));
+            } catch (ParseException e) {
+                return 0;
+            }
+        });
+
+        // 3. Заполняем пропущенные месяцы нулями
+        List<String> allMonths = new ArrayList<>();
+        Calendar start = Calendar.getInstance();
+        Calendar end = Calendar.getInstance();
+        try {
+            start.setTime(monthFormat.parse(sortedMonths.get(0)));
+            end.setTime(monthFormat.parse(sortedMonths.get(sortedMonths.size() - 1)));
+
+            while (!start.after(end)) {
+                String key = monthFormat.format(start.getTime());
+                allMonths.add(key);
+                if (!monthlyTotals.containsKey(key)) {
+                    monthlyTotals.put(key, 0.0); // вставляем нули для пропусков
+                }
+                start.add(Calendar.MONTH, 1);
+            }
+        } catch (ParseException e) {
+            Log.e(TAG, "Ошибка при обработке месяцев", e);
+            allMonths = sortedMonths; // fallback
+        }
+
+        // 4. Создаем список ExpenseData с правильным порядком X
+        for (int i = 0; i < allMonths.size(); i++) {
+            String monthKey = allMonths.get(i);
+            double total = monthlyTotals.get(monthKey);
+            // X = уникальный номер месяца для регрессии
+            result.add(new ExpenseData(monthKey, total, i + 1));
+        }
+
+        Log.d(TAG, "Найдено " + result.size() + " месяцев данных для категории " + userCatId);
         return result;
     }
+
 
     /**
      * Получает информацию о нефиксированных категориях
