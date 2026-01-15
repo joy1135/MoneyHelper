@@ -100,9 +100,9 @@ public class SberbankStatementParser {
                     Log.d(TAG, String.format("  Сумма: %s, Категория: %s, Описание: %s",
                             transaction.amount, transaction.category, transaction.description));
                 } else if (transaction != null && transaction.isIncome) {
-                    transactions.add(transaction);
-                    transaction.isIncome = true;
-//                    Log.d(TAG, "✗ Транзакция пропущена (доход): " + String.format("%s", transaction.amount));
+                    // transactions.add(transaction);
+                    // transaction.isIncome = true;
+                   Log.d(TAG, "✗ Транзакция пропущена (доход): " + String.format("%s", transaction.amount));
                 } else {
                     Log.d(TAG, "✗ Транзакция не распознана");
                 }
@@ -160,10 +160,7 @@ public class SberbankStatementParser {
             }
 
             // Определяем тип операции
-            transaction.isIncome = mainLine.contains("+") ||
-                    mainLine.contains("Перевод от") ||
-                    mainLine.contains("Стипендия") ||
-                    mainLine.contains("Перевод СБП") && mainLine.contains("от");
+            transaction.isIncome = mainLine.contains("+");
             Log.d(TAG, "Тип: " + (transaction.isIncome ? "Доход" : "Расход"));
         } else {
             Log.w(TAG, "✗ Сумма не найдена");

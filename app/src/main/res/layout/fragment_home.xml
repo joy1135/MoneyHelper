@@ -80,7 +80,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Бал. доход-расход"
+                        android:text="Доход-расход"
                         android:textColor="@color/black"/>
 
                     <TextView

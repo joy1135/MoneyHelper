@@ -519,17 +519,29 @@ public class CategoryService {
         cal.set(Calendar.DAY_OF_MONTH, 1);
         String monthStr = dateFormat.format(cal.getTime());
         
+//        try {
+//            // Получаем сумму доходов из monthly_expenses где is_income = 1
+//            String query = "SELECT COALESCE(SUM(me.expenses), 0) " +
+//                          "FROM monthly_expenses me " +
+//                          "JOIN dates d ON me.date_id = d.id " +
+//                          "JOIN user_categories uc ON me.user_cat_id = uc.id " +
+//                          "WHERE uc.user_id = ? AND d.date = ? AND me.is_income = 1";
+//
+//            try (Cursor cursor = db.rawQuery(query,
+//                    new String[]{String.valueOf(getCurrentUserId()), monthStr})) {
+//                if (cursor.moveToFirst()) {
+//                    double income = cursor.getDouble(0);
+//                    Log.d(TAG, String.format("Доход за %s: %.2f", monthStr, income));
+//                    return income;
+//                }
+//            }
+//        } catch (Exception e) {
+//            Log.e(TAG, "Ошибка при получении дохода", e);
+//        }
         try {
-            // Получаем сумму доходов из monthly_expenses где is_income = 1
-            String query = "SELECT COALESCE(SUM(me.expenses), 0) " +
-                          "FROM monthly_expenses me " +
-                          "JOIN dates d ON me.date_id = d.id " +
-                          "JOIN user_categories uc ON me.user_cat_id = uc.id " +
-                          "WHERE uc.user_id = ? AND d.date = ? AND me.is_income = 1";
-            
-            try (Cursor cursor = db.rawQuery(query, 
-                    new String[]{String.valueOf(getCurrentUserId()), monthStr})) {
-                if (cursor.moveToFirst()) {
+            String query = "SELECT money from users where id = ?";
+            try(Cursor cursor= db.rawQuery(query, new String[]{String.valueOf(getCurrentUserId())})) {
+                if (cursor.moveToFirst()){
                     double income = cursor.getDouble(0);
                     Log.d(TAG, String.format("Доход за %s: %.2f", monthStr, income));
                     return income;
