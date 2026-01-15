@@ -91,8 +91,28 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             expenseTextView.setText(String.format(Locale.getDefault(),
                     "%.0f ₽", category.getCurrentExpense()));
 
-            // Процент от общих расходов
-            percentageTextView.setText(category.getPercentage() + "%");
+            // Процент текущих расходов от предсказанных
+            if (category.getBudget() > 0) {
+                // Вычисляем процент: (текущие расходы / прогноз) * 100
+                double percentageValue = (category.getCurrentExpense() / category.getBudget()) * 100;
+                percentageTextView.setText(String.format(Locale.getDefault(),
+                        "%.0f%%", percentageValue));
+                
+                // Устанавливаем цвет в зависимости от процента
+                if (percentageValue < 90) {
+                    // Меньше 90% - зеленый
+                    percentageTextView.setTextColor(Color.parseColor("#4CAF50")); // Зеленый
+                } else if (percentageValue <= 100) {
+                    // От 90% до 100% - желтый
+                    percentageTextView.setTextColor(Color.parseColor("#FFC107")); // Желтый
+                } else {
+                    // Выше 100% - красный
+                    percentageTextView.setTextColor(Color.parseColor("#F44336")); // Красный
+                }
+            } else {
+                percentageTextView.setText("");
+                percentageTextView.setTextColor(Color.parseColor("#757575")); // Серый по умолчанию
+            }
 
             // Бюджет
             if (budgetTextView != null) {
@@ -130,21 +150,26 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
                 differenceTextView.setVisibility(View.GONE);
             }
 
-            // ProgressBar для бюджета
+            // ProgressBar заполняется пропорционально текущим расходам относительно прогноза
             if (budgetProgressBar != null && category.getBudget() > 0) {
-                int progress = category.getBudgetFulfillment();
-                budgetProgressBar.setProgress(Math.min(progress, 100));
+                // Вычисляем прогресс: (текущие расходы / прогноз) * 100
+                double progressValue = (category.getCurrentExpense() / category.getBudget()) * 100;
+                int progress = (int) Math.min(progressValue, 100);
+                budgetProgressBar.setProgress(progress);
 
-                // Меняем цвет в зависимости от процента
-                if (progress > 100) {
+                // Меняем цвет в зависимости от процента выполнения прогноза
+                if (progressValue > 100) {
+                    // Перерасход - красный
                     budgetProgressBar.setProgressTintList(
                             android.content.res.ColorStateList.valueOf(
                                     Color.parseColor("#F44336"))); // Красный
-                } else if (progress > 80) {
+                } else if (progressValue > 80) {
+                    // Близко к прогнозу - оранжевый
                     budgetProgressBar.setProgressTintList(
                             android.content.res.ColorStateList.valueOf(
                                     Color.parseColor("#FF9800"))); // Оранжевый
                 } else {
+                    // В пределах нормы - зеленый
                     budgetProgressBar.setProgressTintList(
                             android.content.res.ColorStateList.valueOf(
                                     Color.parseColor("#4CAF50"))); // Зеленый

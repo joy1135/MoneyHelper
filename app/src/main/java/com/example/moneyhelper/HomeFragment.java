@@ -33,7 +33,7 @@ public class HomeFragment extends Fragment {
 
     private TextView balanceTextView;
     private RecyclerView expensesRecyclerView;
-    private ExpenseAdapter expenseAdapter;
+    private CategoryAdapter categoryAdapter;
     private Button predictionButton;
     private Button showButton;
     private ExecutorService executorService;
@@ -82,10 +82,20 @@ public class HomeFragment extends Fragment {
     private void setupRecyclerView() {
         expensesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Используем тот же тип данных, что ожидает ExpenseAdapter
-        List<com.example.moneyhelper.DataTypes.Expense> emptyList = new ArrayList<>();
-        expenseAdapter = new ExpenseAdapter(emptyList);
-        expensesRecyclerView.setAdapter(expenseAdapter);
+        // Используем CategoryAdapter с item_category.xml
+        List<Category> emptyList = new ArrayList<>();
+        categoryAdapter = new CategoryAdapter(emptyList, new CategoryAdapter.CategoryClickListener() {
+            @Override
+            public void onCategoryClick(Category category) {
+                // В HomeFragment клик по категории не требуется
+            }
+
+            @Override
+            public void onCategoryLongClick(Category category) {
+                // В HomeFragment длинный клик не требуется
+            }
+        });
+        expensesRecyclerView.setAdapter(categoryAdapter);
     }
 
     private void loadData() {
@@ -98,8 +108,8 @@ public class HomeFragment extends Fragment {
                 // Получаем баланс
                 double balance = categoryService.getBalance(currentMonth);
                 
-                // Получаем все категории с прогнозами на следующий месяц
-                allCategories = categoryService.getCategoriesWithPredictions();
+                // Получаем категории с текущими расходами за текущий месяц и прогнозами из predict
+                allCategories = categoryService.getCategoriesForMonth(currentMonth);
                 
                 // Фильтруем категории с прогнозами > 0
                 List<Category> categoriesWithPredictions = new ArrayList<>();
@@ -109,6 +119,9 @@ public class HomeFragment extends Fragment {
                     }
                 }
                 allCategories = categoriesWithPredictions;
+                
+                // Сортируем по убыванию текущих расходов
+                allCategories.sort((c1, c2) -> Double.compare(c2.getCurrentExpense(), c1.getCurrentExpense()));
                 
                 // Берем топ-3 для начального отображения
                 displayedCategories = new ArrayList<>();
@@ -121,7 +134,7 @@ public class HomeFragment extends Fragment {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         updateBalance(balance);
-                        updateExpensesList();
+                        updateCategoriesList();
                         updateShowButton();
                         if (displayedCategories.isEmpty()){
                             showEmptyState();
@@ -167,18 +180,9 @@ public class HomeFragment extends Fragment {
         }
     }
     
-    private void updateExpensesList() {
-        // Конвертируем Category в Expense для отображения прогнозов
-        List<com.example.moneyhelper.DataTypes.Expense> expenses = new ArrayList<>();
-        for (Category category : displayedCategories) {
-            // Используем budget (прогноз) вместо currentExpense
-            expenses.add(new com.example.moneyhelper.DataTypes.Expense(
-                    category.getIcon() + " " + category.getName(),
-                    (int) category.getBudget(),
-                    false
-            ));
-        }
-        expenseAdapter.updateExpenses(expenses);
+    private void updateCategoriesList() {
+        // Обновляем список категорий
+        categoryAdapter.updateCategories(displayedCategories);
     }
     
     private void updateShowButton() {
@@ -209,7 +213,7 @@ public class HomeFragment extends Fragment {
             displayedCategories.add(allCategories.get(i));
         }
         
-        updateExpensesList();
+        updateCategoriesList();
         updateShowButton();
     }
 

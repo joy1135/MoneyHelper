@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener(item -> {
-            Fragment selectedFragment = null;
+            Fragment selectedFragment = new HomeFragment();
             int itemId = item.getItemId();
 
             if (itemId == R.id.nav_categories) {

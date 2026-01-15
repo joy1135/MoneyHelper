@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 
 public class StatementImportService {
@@ -183,11 +184,17 @@ public class StatementImportService {
         // Получаем date_id для месяца транзакции
         long dateId = getOrCreateDateId(db, transaction.date);
 
+        // Генерируем transaction_id, если его нет
+        String transactionId = transaction.id;
+        if (transactionId == null || transactionId.isEmpty()) {
+            transactionId = UUID.randomUUID().toString();
+        }
+        
         ContentValues values = new ContentValues();
         values.put("user_cat_id", userCatId);
         values.put("expenses", Math.abs(transaction.amount)); // Сохраняем абсолютное значение
         values.put("date_id", dateId);
-        values.put("transaction_id", transaction.id);
+        values.put("transaction_id", transactionId);
         values.put("is_income", transaction.isIncome ? 1 : 0); // 0 - расход, 1 - доход
 
         return db.insert("monthly_expenses", null, values);

@@ -1,6 +1,5 @@
 package com.example.moneyhelper;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
@@ -14,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.app.AlertDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -103,15 +103,25 @@ public class CategoriesFragment extends Fragment {
         categoryAdapter = new CategoryAdapter(new ArrayList<>(), new CategoryAdapter.CategoryClickListener() {
             @Override
             public void onCategoryClick(Category category) {
-                showCategoryDetails(category);
+                // Открываем экран с деталями категории
+                openCategoryDetails(category);
             }
 
             @Override
             public void onCategoryLongClick(Category category) {
-                showCategoryOptions(category);
+                // Длинный клик не используется
             }
         });
         categoriesRecyclerView.setAdapter(categoryAdapter);
+    }
+    
+    private void openCategoryDetails(Category category) {
+        Intent intent = new Intent(getContext(), CategoryDetailsActivity.class);
+        intent.putExtra(CategoryDetailsActivity.EXTRA_CATEGORY_ID, category.getUserCategoryId());
+        intent.putExtra(CategoryDetailsActivity.EXTRA_CATEGORY_NAME, category.getName());
+        intent.putExtra(CategoryDetailsActivity.EXTRA_CATEGORY_ICON, category.getIcon());
+        intent.putExtra(CategoryDetailsActivity.EXTRA_MONTH_DATE, selectedMonth.getTime().getTime());
+        startActivity(intent);
     }
 
     private void loadCategories() {
@@ -151,6 +161,7 @@ public class CategoriesFragment extends Fragment {
             }
         }).start();
     }
+    
     private void showCategories(List<Category> categories, CategoryService.CategoryStats stats) {
         categoriesRecyclerView.setVisibility(View.VISIBLE);
         emptyTextView.setVisibility(View.GONE);
@@ -163,7 +174,7 @@ public class CategoriesFragment extends Fragment {
     private void showEmptyState() {
         categoriesRecyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
-        emptyTextView.setText("Нет категорий.\nДобавьте категорию или импортируйте выписку.");
+        emptyTextView.setText("Нет категорий.\nДобавьте расход или импортируйте выписку.");
 
         if (statsTextView != null) {
             statsTextView.setVisibility(View.GONE);
@@ -331,86 +342,6 @@ public class CategoriesFragment extends Fragment {
         }).start();
     }
 
-    private void showCategoryDetails(Category category) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-
-        String message = String.format(Locale.getDefault(),
-                "Расходы: %.2f ₽\n" +
-                        "Бюджет: %.2f ₽\n" +
-                        "Процент: %d%%\n" +
-                        "Разница: %.2f ₽\n" +
-                        "Выполнение: %d%%",
-                category.getCurrentExpense(),
-                category.getBudget(),
-                category.getPercentage(),
-                category.getDifference(),
-                category.getBudgetFulfillment()
-        );
-
-        builder.setTitle(category.getIcon() + " " + category.getName())
-                .setMessage(message)
-                .setPositiveButton("OK", null)
-                .show();
-    }
-
-    private void showCategoryOptions(Category category) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-
-        String[] options = {"Редактировать", "Удалить"};
-
-        builder.setTitle(category.getName())
-                .setItems(options, (dialog, which) -> {
-                    switch (which) {
-                        case 0:
-                            showEditCategoryDialog(category);
-                            break;
-                        case 1:
-                            showDeleteConfirmation(category);
-                            break;
-                    }
-                })
-                .show();
-    }
-
-    private void showEditCategoryDialog(Category category) {
-        Toast.makeText(getContext(),
-                "Редактирование будет добавлено",
-                Toast.LENGTH_SHORT).show();
-    }
-
-    private void showDeleteConfirmation(Category category) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-
-        builder.setTitle("Удалить категорию?")
-                .setMessage("Категория \"" + category.getName() +
-                        "\" и все связанные расходы будут удалены. Это действие нельзя отменить.")
-                .setPositiveButton("Удалить", (dialog, which) -> {
-                    deleteCategory(category);
-                })
-                .setNegativeButton("Отмена", null)
-                .show();
-    }
-
-    private void deleteCategory(Category category) {
-        new Thread(() -> {
-            boolean success = categoryService.deleteCategory(category.getUserCategoryId());
-
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    if (success) {
-                        Toast.makeText(getContext(),
-                                "Категория удалена",
-                                Toast.LENGTH_SHORT).show();
-                        loadCategories();
-                    } else {
-                        Toast.makeText(getContext(),
-                                "Ошибка удаления категории",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        }).start();
-    }
 
     @Override
     public void onResume() {

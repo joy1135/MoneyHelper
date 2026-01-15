@@ -29,7 +29,12 @@
         <activity
             android:name=".StatementImportActivity"
             android:exported="false"
-            android:label="Импорт выписки" /> <!-- Планировщик прогнозов -->
+            android:label="Импорт выписки" />
+        <activity
+            android:name=".CategoryDetailsActivity"
+            android:exported="false"
+            android:label="Детали категории"
+            android:parentActivityName=".MainActivity" /> <!-- Планировщик прогнозов -->
         <receiver
             android:name=".scheduler.PredictionScheduler"
             android:enabled="true"

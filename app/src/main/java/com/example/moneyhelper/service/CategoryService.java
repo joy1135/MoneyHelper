@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.example.moneyhelper.DatabaseHelper;
 import com.example.moneyhelper.DataTypes.Category;
+import com.example.moneyhelper.DataTypes.Expense;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Сервис для работы с категориями
@@ -344,12 +346,16 @@ public class CategoryService {
                 }
             }
             
+            // Генерируем transaction_id, если его нет
+            String transactionId = UUID.randomUUID().toString();
+            
             // Добавляем расход
             ContentValues values = new ContentValues();
             values.put("user_cat_id", userCategoryId);
             values.put("expenses", amount);
             values.put("date_id", dateId);
             values.put("is_income", 0); // 0 - расход
+            values.put("transaction_id", transactionId);
             
             long result = db.insert("monthly_expenses", null, values);
             
@@ -379,6 +385,209 @@ public class CategoryService {
      */
     public boolean addExpense(long userCategoryId, double amount) {
         return addExpense(userCategoryId, amount, null);
+    }
+    
+    /**
+     * Получить все расходы за указанный месяц
+     * @param month Месяц для получения расходов
+     * @return Список расходов
+     */
+    public List<Expense> getExpensesForMonth(Date month) {
+        List<Expense> expenses = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        
+        Calendar cal = Calendar.getInstance();
+        if (month != null) {
+            cal.setTime(month);
+        }
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        
+        String monthStr = dateFormat.format(cal.getTime());
+        
+        String query =
+                "SELECT " +
+                        "    me.id, " +
+                        "    me.transaction_id, " +
+                        "    me.user_cat_id, " +
+                        "    uc.name as category_name, " +
+                        "    c.icon as category_icon, " +
+                        "    me.expenses, " +
+                        "    COALESCE(me.is_income, 0) as is_income, " +
+                        "    d.date " +
+                        "FROM monthly_expenses me " +
+                        "JOIN user_categories uc ON me.user_cat_id = uc.id " +
+                        "JOIN categories c ON uc.cat_id = c.id " +
+                        "JOIN dates d ON me.date_id = d.id " +
+                        "WHERE uc.user_id = ? AND d.date = ? " +
+                        "ORDER BY me.id DESC";
+        
+        try (Cursor cursor = db.rawQuery(query,
+                new String[]{String.valueOf(getCurrentUserId()), monthStr})) {
+            
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(0);
+                String transactionId = cursor.getString(1);
+                long userCatId = cursor.getLong(2);
+                String categoryName = cursor.getString(3);
+                String categoryIcon = cursor.getString(4);
+                double amount = cursor.getDouble(5);
+                boolean isIncome = cursor.getInt(6) == 1;
+                String dateStr = cursor.getString(7);
+                
+                Date expenseDate;
+                try {
+                    expenseDate = dateFormat.parse(dateStr);
+                } catch (Exception e) {
+                    expenseDate = cal.getTime();
+                }
+                
+                Expense expense = new Expense(id, transactionId, userCatId,
+                        categoryName, categoryIcon, amount, isIncome, expenseDate);
+                expenses.add(expense);
+            }
+            
+            Log.d(TAG, String.format("Загружено %d расходов за %s", expenses.size(), monthStr));
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при загрузке расходов", e);
+        }
+        
+        return expenses;
+    }
+    
+    /**
+     * Обновить расход
+     * @param expenseId ID расхода
+     * @param userCategoryId ID категории пользователя
+     * @param amount Новая сумма расхода
+     * @return true если успешно обновлено
+     */
+    public boolean updateExpense(long expenseId, long userCategoryId, double amount) {
+        if (amount <= 0) {
+            Log.e(TAG, "Сумма расхода должна быть больше 0");
+            return false;
+        }
+        
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        
+        try {
+            ContentValues values = new ContentValues();
+            values.put("user_cat_id", userCategoryId);
+            values.put("expenses", amount);
+            
+            int rows = db.update("monthly_expenses", values,
+                    "id = ?",
+                    new String[]{String.valueOf(expenseId)});
+            
+            Log.d(TAG, String.format("Обновлен расход id=%d, изменено строк: %d", expenseId, rows));
+            
+            return rows > 0;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при обновлении расхода", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Удалить расход
+     * @param expenseId ID расхода
+     * @return true если успешно удалено
+     */
+    public boolean deleteExpense(long expenseId) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        
+        try {
+            int rows = db.delete("monthly_expenses",
+                    "id = ?",
+                    new String[]{String.valueOf(expenseId)});
+            
+            Log.d(TAG, String.format("Удален расход id=%d, удалено строк: %d", expenseId, rows));
+            
+            return rows > 0;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при удалении расхода", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Получить все транзакции (расходы) по категории за указанный месяц
+     * @param userCategoryId ID категории пользователя
+     * @param month Месяц для получения транзакций
+     * @return Список транзакций
+     */
+    public List<Expense> getExpensesByCategory(long userCategoryId, Date month) {
+        List<Expense> expenses = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        
+        Calendar cal = Calendar.getInstance();
+        if (month != null) {
+            cal.setTime(month);
+        }
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        
+        String monthStr = dateFormat.format(cal.getTime());
+        
+        String query =
+                "SELECT " +
+                        "    me.id, " +
+                        "    me.transaction_id, " +
+                        "    me.user_cat_id, " +
+                        "    uc.name as category_name, " +
+                        "    c.icon as category_icon, " +
+                        "    me.expenses, " +
+                        "    COALESCE(me.is_income, 0) as is_income, " +
+                        "    d.date " +
+                        "FROM monthly_expenses me " +
+                        "JOIN user_categories uc ON me.user_cat_id = uc.id " +
+                        "JOIN categories c ON uc.cat_id = c.id " +
+                        "JOIN dates d ON me.date_id = d.id " +
+                        "WHERE me.user_cat_id = ? AND d.date = ? " +
+                        "ORDER BY me.id DESC";
+        
+        try (Cursor cursor = db.rawQuery(query,
+                new String[]{String.valueOf(userCategoryId), monthStr})) {
+            
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(0);
+                String transactionId = cursor.getString(1);
+                long userCatId = cursor.getLong(2);
+                String categoryName = cursor.getString(3);
+                String categoryIcon = cursor.getString(4);
+                double amount = cursor.getDouble(5);
+                boolean isIncome = cursor.getInt(6) == 1;
+                String dateStr = cursor.getString(7);
+                
+                Date expenseDate;
+                try {
+                    expenseDate = dateFormat.parse(dateStr);
+                } catch (Exception e) {
+                    expenseDate = cal.getTime();
+                }
+                
+                Expense expense = new Expense(id, transactionId, userCatId,
+                        categoryName, categoryIcon, amount, isIncome, expenseDate);
+                expenses.add(expense);
+            }
+            
+            Log.d(TAG, String.format("Загружено %d транзакций для категории %d за %s", 
+                    expenses.size(), userCategoryId, monthStr));
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при загрузке транзакций по категории", e);
+        }
+        
+        return expenses;
     }
     
     /**
