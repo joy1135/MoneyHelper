@@ -35,7 +35,7 @@ public class HomeFragment extends Fragment {
 
     private TextView balanceTextView;
     private RecyclerView expensesRecyclerView;
-    private CategoryAdapter categoryAdapter;
+    private PredictAdapter categoryAdapter;
     private Button predictionButton;
     private Button showButton;
     private ExecutorService executorService;
@@ -86,7 +86,7 @@ public class HomeFragment extends Fragment {
 
         // Используем CategoryAdapter с item_category.xml
         List<Category> emptyList = new ArrayList<>();
-        categoryAdapter = new CategoryAdapter(emptyList, new CategoryAdapter.CategoryClickListener() {
+        categoryAdapter = new PredictAdapter(emptyList, new PredictAdapter.CategoryClickListener() {
             @Override
             public void onCategoryClick(Category category) {
                 // В HomeFragment клик по категории не требуется
