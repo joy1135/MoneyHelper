@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -110,6 +111,11 @@ public class ProfileFragment extends Fragment {
                 .setTitle("Изменить доход")
                 .setView(et)
                 .setPositiveButton("Сохранить", (d, w) -> {
+                    String amountStr = et.getText().toString().trim();
+                    if (amountStr.isEmpty()) {
+                        Toast.makeText(getContext(), "Введите сумму", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     SQLiteDatabase db = databaseHelper.getWritableDatabase();
                     ContentValues cv = new ContentValues();
                     cv.put("money", Integer.parseInt(et.getText().toString()));

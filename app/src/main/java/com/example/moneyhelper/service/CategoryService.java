@@ -84,6 +84,74 @@ public class CategoryService {
         return categories;
     }
 
+    public List<Category> getCategoriesForMonthForPrediction(Date month) {
+        List<Category> categories = new ArrayList<>();
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(month);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        String monthStr = dateFormat.format(cal.getTime());
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // Исправленный SQL запрос
+        String query =
+                "SELECT " +
+                        "    uc.id as user_cat_id, " +
+                        "    uc.cat_id, " +
+                        "    uc.name, " +
+                        "    c.icon, " +
+                        "    uc.fixed, " +
+                        "    COALESCE(ex.sum_expenses, 0) as current_expense, " +
+                        "    COALESCE(p.predict, 0) as budget " +
+                        "FROM user_categories uc " +
+                        "JOIN categories c ON uc.cat_id = c.id " +
+                        "LEFT JOIN predict p ON p.user_cat_id = uc.id " +
+                        "LEFT JOIN (" +
+                        "    SELECT me.user_cat_id, SUM(me.expenses) as sum_expenses " +
+                        "    FROM monthly_expenses me " +
+                        "    JOIN dates d ON me.date_id = d.id " +
+                        "    WHERE d.date = ? AND (me.is_income = 0 OR me.is_income IS NULL) " +
+                        "    GROUP BY me.user_cat_id " +
+                        ") ex ON uc.id = ex.user_cat_id " +
+                        "WHERE uc.user_id = ? " +
+                        "ORDER BY current_expense DESC";
+
+        try (Cursor cursor = db.rawQuery(query, new String[]{monthStr, String.valueOf(getCurrentUserId())})) {
+            double totalExpense = 0;
+            List<Category> tempList = new ArrayList<>();
+
+            while (cursor.moveToNext()) {
+                long userCatId = cursor.getLong(0);
+                long catId = cursor.getLong(1);
+                String name = cursor.getString(2);
+                String icon = cursor.getString(3);
+                boolean isFixed = cursor.getInt(4) == 1;
+                double currentExpense = cursor.getDouble(5);
+                double budget = cursor.getDouble(6);
+
+                Category category = new Category(userCatId, catId, name, icon, isFixed, currentExpense, budget);
+                category.setMonthDate(cal.getTime());
+
+                tempList.add(category);
+                totalExpense += currentExpense;
+            }
+
+            for (Category category : tempList) {
+                if (totalExpense > 0) {
+                    category.setPercentage((int) ((category.getCurrentExpense() / totalExpense) * 100));
+                }
+                categories.add(category);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при загрузке категорий", e);
+        }
+
+        return categories;
+    }
+
+
+
     /**
      * Получить категории за определенный месяц
      */

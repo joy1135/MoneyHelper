@@ -1,6 +1,8 @@
 package com.example.moneyhelper;
 
+import android.nfc.Tag;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,19 +111,23 @@ public class HomeFragment extends Fragment {
                 double balance = categoryService.getBalance(currentMonth);
                 
                 // Получаем категории с текущими расходами за текущий месяц и прогнозами из predict
-                allCategories = categoryService.getCategoriesForMonth(currentMonth);
+                allCategories = categoryService.getCategoriesForMonthForPrediction(currentMonth);
                 
                 // Фильтруем категории с прогнозами > 0
                 List<Category> categoriesWithPredictions = new ArrayList<>();
                 for (Category category : allCategories) {
                     if (category.getBudget() > 0) {
                         categoriesWithPredictions.add(category);
+                        Log.d("MAIN", category.toString());
                     }
                 }
                 allCategories = categoriesWithPredictions;
                 
                 // Сортируем по убыванию текущих расходов
-                allCategories.sort((c1, c2) -> Double.compare(c2.getCurrentExpense(), c1.getCurrentExpense()));
+                allCategories.sort((c1, c2) -> {
+                    // Если нужно поднять те, где есть прогноз, выше:
+                    return Double.compare(c2.getBudget(), c1.getBudget());
+                });
                 
                 // Берем топ-3 для начального отображения
                 displayedCategories = new ArrayList<>();
