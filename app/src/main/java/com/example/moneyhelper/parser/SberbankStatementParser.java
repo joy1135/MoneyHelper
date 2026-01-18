@@ -130,28 +130,17 @@ public class SberbankStatementParser {
             transaction.id = transactionId;
             Log.d(TAG, "✓ Код транзакции: " + transactionId);
         }
-
-        // 1. Парсим дату и время
         transaction.date = parseDate(mainLine);
-
-
-
-
         Log.d(TAG, "Дата: " + transaction.date);
 
-        // 2. Извлекаем категорию из основной строки
         String category = findCategory(mainLine);
         if (category != null) {
             transaction.category = mapCategory(category);
             Log.d(TAG, "✓ Найдена категория: " + category + " -> " + transaction.category);
         }
 
-        // 3. Извлекаем суммы (их может быть две: сумма операции и остаток)
-
         List<Integer> amounts = extractAllAmounts(mainLine);
         if (!amounts.isEmpty()) {
-            // ВСЕГДА берем ПЕРВУЮ сумму - это сумма операции
-            // Вторая сумма (если есть) - это остаток на счете
             transaction.amount = amounts.get(1);
             Log.d(TAG, "✓ Найдена сумма операции: " + transaction.amount);
 
@@ -159,7 +148,6 @@ public class SberbankStatementParser {
                 Log.d(TAG, "  Остаток на счете: " + amounts.get(1));
             }
 
-            // Определяем тип операции
             transaction.isIncome = mainLine.contains("+");
             Log.d(TAG, "Тип: " + (transaction.isIncome ? "Доход" : "Расход"));
         } else {
@@ -167,15 +155,12 @@ public class SberbankStatementParser {
             return null;
         }
 
-        // 4. Извлекаем описание из основной строки
-        // Убираем дату, время, код, категорию, суммы
         String description = extractDescriptionFromMainLine(mainLine, category);
         if (description != null && !description.isEmpty()) {
             transaction.description = description;
             Log.d(TAG, "✓ Найдено описание из основной строки: " + description);
         }
 
-        // 5. Если описания нет, ищем в следующих строках
         if (transaction.description == null || transaction.description.isEmpty()) {
             int endIndex = Math.min(startIndex + 5, lines.length);
             for (int i = startIndex + 1; i < endIndex; i++) {
@@ -191,13 +176,11 @@ public class SberbankStatementParser {
             }
         }
 
-        // 6. Если категория не найдена, определяем по описанию
         if (transaction.category == null && transaction.description != null) {
             transaction.category = guessCategoryFromDescription(transaction.description);
             Log.d(TAG, "⚠ Категория определена по описанию: " + transaction.category);
         }
 
-        // 7. Fallback значения
         if (transaction.category == null) {
             transaction.category = "Другое";
             Log.w(TAG, "⚠ Категория не найдена, установлена 'Другое'");
@@ -211,9 +194,7 @@ public class SberbankStatementParser {
         return transaction;
     }
 
-    /**
-     * Парсит дату из строки
-     */
+
     private Date parseDate(String line) {
         Pattern dateTimePattern = Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})\\s+(\\d{2}:\\d{2})");
         Matcher matcher = dateTimePattern.matcher(line);

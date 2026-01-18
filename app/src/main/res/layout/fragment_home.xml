@@ -11,20 +11,22 @@
         android:layout_height="wrap_content">
 
         <!-- Заголовок -->
+
+        <!-- Учёт финансов -->
         <TextView
             android:id="@+id/titleTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Главный"
+            android:layout_marginTop="16dp"
+            android:text="Прогноз расходов"
+            android:textColor="@color/black"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_marginTop="16dp"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.501"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Учёт финансов -->
         <TextView
             android:id="@+id/financeLabelTextView"
             android:layout_width="wrap_content"

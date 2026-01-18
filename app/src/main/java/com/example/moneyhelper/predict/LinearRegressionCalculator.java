@@ -7,9 +7,9 @@ public class LinearRegressionCalculator {
     private static final String TAG = "LinearRegression";
 
     public static class RegressionResult {
-        public double slope;           // наклон линии
-        public double intercept;       // пересечение с осью Y
-        public double nextPrediction;  // прогноз для следующего X
+        public double slope;
+        public double intercept;
+        public double nextPrediction;
         public boolean isValid;
         public String errorMessage;
 
@@ -17,10 +17,6 @@ public class LinearRegressionCalculator {
             isValid = false;
         }
     }
-
-    /**
-     * Вычисляет линейную регрессию для произвольных X и Y
-     */
     public static RegressionResult calculateRegression(List<Double> xValues, List<Double> yValues) {
         RegressionResult result = new RegressionResult();
 
@@ -59,12 +55,10 @@ public class LinearRegressionCalculator {
             result.slope = (n * sumXY - sumX * sumY) / denominator;
             result.intercept = (sumY - result.slope * sumX) / n;
 
-            // Прогноз для следующего X: последний X + шаг (если шаг = 1)
             double lastX = xValues.get(n - 1);
             double step = (n > 1) ? (xValues.get(n - 1) - xValues.get(n - 2)) : 1.0;
             result.nextPrediction = result.slope * (lastX + step) + result.intercept;
 
-            // Защита от отрицательного прогноза
             if (result.nextPrediction < 0) {
                 result.nextPrediction = 0;
                 Log.w(TAG, "Предсказание отрицательное, установлено в 0");
@@ -83,13 +77,9 @@ public class LinearRegressionCalculator {
         return result;
     }
 
-    /**
-     * Удобный метод для простого массива Y с X = 1,2,3...
-     */
     public static double predictNextValue(List<Double> yValues) {
         if (yValues == null || yValues.size() < 2) return -1;
 
-        // Создаём X = 1,2,3...
         List<Double> xValues = new java.util.ArrayList<>();
         for (int i = 0; i < yValues.size(); i++) {
             xValues.add((double)(i + 1));
