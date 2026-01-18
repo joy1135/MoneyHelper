@@ -34,11 +34,11 @@
             android:name=".CategoryDetailsActivity"
             android:exported="false"
             android:label="Детали категории"
-            android:parentActivityName=".MainActivity" /> <!-- Планировщик прогнозов -->
+            android:parentActivityName=".MainActivity" />
         <receiver
             android:name=".scheduler.PredictionScheduler"
             android:enabled="true"
-            android:exported="false" /> <!-- Обработчик перезагрузки -->
+            android:exported="false" />
         <receiver
             android:name=".scheduler.PredictionScheduler$BootReceiver"
             android:enabled="true"
@@ -47,12 +47,6 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-<!--        <activity android:name="Tests.ParserTestActivity" android:exported="true">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
-<!--        </activity>-->
     </application>
 
 </manifest>
