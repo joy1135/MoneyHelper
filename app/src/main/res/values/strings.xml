@@ -83,4 +83,7 @@
 <string name="calendar_predictions_title">Календарь прогнозов</string>
 <string name="expected_expenses_for_day">Ожидаемые списания</string>
     <string name="nav_exprences_title">Прогноз</string>
+    <string name="nav_categories_title">Расходы</string>
+    <string name="nav_profile_title">Личный кабинет</string>
+    <string name="add_expense_dialog_title">Добавить расход</string>
 </resources>

@@ -13,7 +13,6 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.app.AlertDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -234,7 +233,7 @@ public class CategoriesFragment extends Fragment {
 
     private void showAddExpenseDialog(List<Category> categories) {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
-        builder.setTitle("Добавить расход");
+        builder.setTitle(R.string.add_expense_dialog_title);
 
         View dialogView = getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
 

@@ -1,6 +1,5 @@
 package com.example.moneyhelper;
-import com.example.moneyhelper.DataTypes.Expense;
-import com.example.moneyhelper.scheduler.PredictionScheduler;
+
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -50,11 +49,8 @@ public class MainActivity extends AppCompatActivity {
 //                selectedFragment = new PredictionCalendarFragment();
 //            }
 
-            if (selectedFragment != null) {
-                loadFragment(selectedFragment);
-                return true;
-            }
-            return false;
+            loadFragment(selectedFragment);
+            return true;
         });
     }
 
