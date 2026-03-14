@@ -1,170 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:background="@android:color/white">
+    android:background="?attr/colorSurface">
 
-    <!-- Заголовок -->
-    <TextView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="Импорт выписки Сбербанка"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:textSize="24sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Загрузите PDF выписку из приложения СберБанк Онлайн"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_marginBottom="32dp"/>
-
-    <!-- Карточка с информацией -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="#E3F2FD">
+        android:layout_height="match_parent"
+        android:padding="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="ℹ️ Как получить выписку:"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#1976D2"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:text="@string/import_sber_statement"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="1. Откройте СберБанк Онлайн\n2. Перейдите в 'Выписки и справки'\n3. Выберите карту и период\n4. Скачайте PDF выписку"
-                android:textSize="14sp"
-                android:textColor="#424242"
-                android:lineSpacingMultiplier="1.2"/>
+                android:text="@string/import_sber_desc"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOutline"
+                android:layout_marginBottom="32dp"/>
+
+            <!-- Инструкция -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="?attr/colorSecondaryContainer">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/how_to_get_statement_title"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/how_to_get_statement_desc"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:lineSpacingMultiplier="1.2"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectFile"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                app:cornerRadius="16dp"
+                android:text="@string/btn_select_pdf"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:id="@+id/tvFileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/file_not_selected"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOutline"
+                android:gravity="center"
+                android:layout_marginBottom="16dp"/>
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progressBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/select_pdf_status"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:gravity="center"
+                android:minHeight="48dp"
+                android:layout_marginBottom="32dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnImport"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                app:cornerRadius="16dp"
+                android:text="@string/btn_import"
+                android:enabled="false"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGoHome"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:text="@string/btn_go_home"/>
+
+            <!-- Доп инфа -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="?attr/colorTertiaryContainer">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/what_will_happen_title"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        android:textColor="?attr/colorOnTertiaryContainer"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/what_will_happen_desc"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnTertiaryContainer"
+                        android:lineSpacingMultiplier="1.2"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
-    <!-- Кнопка выбора файла -->
-    <Button
-        android:id="@+id/btnSelectFile"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="📁 Выбрать PDF файл"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:backgroundTint="#4CAF50"
-        android:textColor="@android:color/white"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Имя выбранного файла -->
-    <TextView
-        android:id="@+id/tvFileName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Файл не выбран"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"
-        android:textStyle="italic"
-        android:gravity="center"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Прогресс-бар -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:layout_marginBottom="16dp"
-        android:visibility="gone"/>
-
-    <!-- Статус импорта -->
-    <TextView
-        android:id="@+id/tvStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Выберите PDF файл с выпиской Сбербанка"
-        android:textSize="14sp"
-        android:textColor="@android:color/black"
-        android:gravity="center"
-        android:minHeight="48dp"
-        android:layout_marginBottom="24dp"/>
-
-    <!-- Кнопка импорта -->
-    <Button
-        android:id="@+id/btnImport"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="⬆️ Импортировать"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:backgroundTint="#2196F3"
-        android:textColor="@android:color/white"
-        android:enabled="false"/>
-
-    <Button
-        android:id="@+id/btnGoHome"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="12dp"
-        android:text="🏠 На главный экран"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:backgroundTint="#9E9E9E"
-        android:textColor="@android:color/white"/>
-
-    <!-- Дополнительная информация -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="1dp"
-        app:cardBackgroundColor="#FFF9C4">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="💡 Что произойдет:"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#F57C00"
-                android:layout_marginBottom="4dp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="• Расходы будут автоматически распределены по категориям\n• Дубликаты не будут добавлены\n• При наличии данных за 2+ месяца будут созданы прогнозы"
-                android:textSize="13sp"
-                android:textColor="#5D4037"
-                android:lineSpacingMultiplier="1.2"/>
-
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
-</LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

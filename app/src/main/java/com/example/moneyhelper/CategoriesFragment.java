@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moneyhelper.DataTypes.Category;
 import com.example.moneyhelper.service.CategoryService;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -188,7 +189,7 @@ public class CategoriesFragment extends Fragment {
             String monthName = monthFormat.format(selectedMonth.getTime());
             String statsText = String.format(Locale.getDefault(),
                     "%s\n" +
-                            "Категорий: %d | Расходы: %.0f ₽ | Бюджет: %.0f ₽",
+                            "Категорий: %d | Расходы: %.0f ₽ | Прогноз: %.0f ₽",
                     monthName,
                     stats.totalCategories,
                     stats.totalExpense,
@@ -232,7 +233,7 @@ public class CategoriesFragment extends Fragment {
     }
 
     private void showAddExpenseDialog(List<Category> categories) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
         builder.setTitle("Добавить расход");
 
         View dialogView = getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);

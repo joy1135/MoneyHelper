@@ -1,29 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    android:background="?attr/colorSurface"
+    android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:padding="16dp">
 
-        <!-- Заголовок -->
-
-        <!-- Учёт финансов -->
         <TextView
             android:id="@+id/titleTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Прогноз расходов"
-            android:textColor="@color/black"
-            android:textSize="24sp"
+            android:text="@string/expense_forecast_title"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+            android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.501"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -31,82 +27,82 @@
             android:id="@+id/financeLabelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Учёт финансов"
-            android:textSize="14sp"
-            android:textColor="@color/gray"
-            android:layout_marginTop="24dp"
+            android:text="@string/finance_label"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOutline"
+            android:layout_marginTop="4dp"
             app:layout_constraintTop_toBottomOf="@id/titleTextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"/>
 
-        <!-- Карточка Мои расходы -->
-        <androidx.cardview.widget.CardView
+        <!-- Карточка прогноза -->
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/expensesCardView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
-            app:layout_constraintTop_toBottomOf="@id/financeLabelTextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:layout_marginTop="24dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer"
+            app:layout_constraintTop_toBottomOf="@id/financeLabelTextView">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Прогноз расходов на следующий месяц"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black"/>
+                    android:text="@string/forecast_next_month"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold"/>
 
-                <!-- Баланс доход-расход -->
-                <LinearLayout
+                <!-- Баланс -->
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp"
-                    android:background="#E3F2FD"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="?attr/colorPrimaryContainer">
 
-                    <TextView
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Доход-расход"
-                        android:textColor="@color/black"/>
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
 
-                    <TextView
-                        android:id="@+id/balanceTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="12000₽"
-                        android:textColor="#2196F3"
-                        android:textStyle="bold"/>
-                </LinearLayout>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/income_expense_balance"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="?attr/colorOnPrimaryContainer"/>
+
+                        <TextView
+                            android:id="@+id/balanceTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 ₽"
+                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:textColor="?attr/colorPrimary"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/emptyTextView"
-                    app:layout_constraintTop_toTopOf="@id/expensesRecyclerView"
-                    app:layout_constraintStart_toStartOf="parent"
-                    android:paddingHorizontal="40dp"
-                    android:paddingVertical="40dp"
-
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@string/empty_transactions"
+                    android:gravity="center"
+                    android:paddingVertical="32dp"
                     android:visibility="gone" />
 
-                <!-- Список расходов по категориям -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/expensesRecyclerView"
                     android:layout_width="match_parent"
@@ -114,35 +110,25 @@
                     android:layout_marginTop="16dp"
                     android:nestedScrollingEnabled="false"/>
 
-                <!-- Кнопка Показать -->
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/showButton"
-                    android:layout_width="wrap_content"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="12dp"
-                    android:text="Показать"
-                    android:backgroundTint="#E0E0E0"
-                    android:textColor="@color/black"/>
-
-                <!-- График общих расходов -->
-
-                <Button
-                    android:id="@+id/predictionButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="Спрогнозировать расходы"
-                    android:backgroundTint="#E0E0E0"
-                    android:textColor="@color/black"
-                    android:padding="12dp"
-                    android:layout_margin="16dp"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"/>
+                    android:layout_marginTop="8dp"
+                    android:text="@string/show" />
 
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/predictionButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            app:cornerRadius="16dp"
+            android:text="@string/btn_predict_expenses"
+            app:layout_constraintTop_toBottomOf="@id/expensesCardView"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

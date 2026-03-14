@@ -47,4 +47,40 @@
     <string name="nav_profile">Личный кабинет</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+<!--<string name="app_name">Учёт финансов</string>-->
+<!--<string name="finance_label">Учёт финансов</string>-->
+<string name="show">Показать</string>
+<string name="total_amount">Всего: %1$s</string>
+<string name="empty_transactions">Нет транзакций</string>
+
+<!-- Главный экран -->
+<string name="expense_forecast_title">Прогноз расходо2в</string>
+<string name="forecast_next_month">Прогноз расходов на следующий месяц</string>
+<string name="income_expense_balance">Доход-расход</string>
+<string name="btn_predict_expenses">Спрогнозировать расходы</string>
+
+<!-- Экран категорий -->
+<string name="expenses">Расходы</string>
+<!--<string name="expenses_by_category">Расходы по категориям</string>-->
+<string name="btn_add_expense">Добавить расход</string>
+<!--<string name="import_bank_statement">Импортировать выписку из банка</string>-->
+
+<!-- Импорт выписки -->
+<string name="import_sber_statement">Импорт выписки</string>
+<string name="import_sber_desc">Загрузите PDF выписку из банковского приложения</string>
+<string name="how_to_get_statement_title">ℹ️ Как получить выписку:</string>
+<string name="how_to_get_statement_desc">1. Откройте приложение банка\n2. Перейдите в \'Выписки и справки\'\n3. Выберите карту и период\n4. Скачайте PDF выписку</string>
+<string name="btn_select_pdf">📁 Выбрать PDF файл</string>
+<string name="file_not_selected">Файл не выбран</string>
+<string name="select_pdf_status">Выберите PDF файл с выпиской</string>
+<string name="btn_import">⬆️ Импортировать</string>
+<string name="btn_go_home">🏠 На главный экран</string>
+<string name="what_will_happen_title">💡 Что произойдет:</string>
+<string name="what_will_happen_desc">• Расходы распределятся по категориям\n• Дубликаты будут проигнорированы\n• На основе 2+ месяцев создастся прогноз</string>
+
+<!-- Календарь прогнозов -->
+<string name="calendar_predictions_title">Календарь прогнозов</string>
+<string name="expected_expenses_for_day">Ожидаемые списания</string>
+    <string name="nav_exprences_title">Прогноз</string>
 </resources>

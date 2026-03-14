@@ -4,182 +4,182 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-   >
-
+    android:background="?attr/colorSurface">
 
     <!-- Заголовок -->
     <TextView
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Расходы"
-        android:textSize="24sp"
+        android:text="@string/expenses"
+        android:textAppearance="?attr/textAppearanceHeadlineMedium"
+        android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
-        android:textColor="@color/black"
         android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"/>
 
-    <!-- Учёт финансов -->
+    <!-- Подзаголовок -->
     <TextView
         android:id="@+id/financeLabelTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Учёт финансов"
-        android:textSize="14sp"
-        android:textColor="@color/gray"
-        android:layout_marginTop="8dp"
+        android:text="@string/finance_label"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOutline"
+        android:layout_marginTop="4dp"
         app:layout_constraintTop_toBottomOf="@id/titleTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintStart_toStartOf="@id/titleTextView"/>
 
     <!-- Переключение месяцев -->
     <LinearLayout
         android:id="@+id/monthSelectorLayout"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/financeLabelTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_marginHorizontal="16dp"
+        app:layout_constraintTop_toBottomOf="@id/financeLabelTextView">
 
-        <!-- Стрелка влево -->
+        <!-- Оставляем TextView, чтобы не сломать Java код, но стилизуем как кнопку -->
         <TextView
             android:id="@+id/monthPrevButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:text="◀"
-            android:textSize="24sp"
-            android:textColor="@color/black"
-            android:padding="8dp"
+            android:textSize="20sp"
+            android:textColor="?attr/colorPrimary"
+            android:gravity="center"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground"/>
+            android:background="?attr/selectableItemBackgroundBorderless"/>
 
-        <!-- Текст месяца -->
         <TextView
             android:id="@+id/monthTextView"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Январь 2024"
-            android:textSize="18sp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
-            android:textColor="@color/black"
-            android:paddingHorizontal="16dp"
-            android:minWidth="120dp"
             android:gravity="center"/>
 
-        <!-- Стрелка вправо -->
         <TextView
             android:id="@+id/monthNextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:text="▶"
-            android:textSize="24sp"
-            android:textColor="@color/black"
-            android:padding="8dp"
+            android:textSize="20sp"
+            android:textColor="?attr/colorPrimary"
+            android:gravity="center"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground"/>
-
+            android:background="?attr/selectableItemBackgroundBorderless"/>
     </LinearLayout>
 
-    <!-- Статистика -->
-    <TextView
-        android:id="@+id/statsTextView"
+    <!-- Карточка статистики (вместо простого текста) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/statsCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="visible"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@id/monthSelectorLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        />
+        app:cardBackgroundColor="?attr/colorSecondaryContainer"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/monthSelectorLayout">
 
-    <!-- Заголовок секции -->
+        <!-- Именно сюда ваш Java код будет вставлять текст -->
+        <TextView
+            android:id="@+id/statsTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            android:lineSpacingMultiplier="1.2"
+            android:textStyle="bold" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Заголовок секции списка -->
     <TextView
         android:id="@+id/sectionTitleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Расходы по категориям"
-        android:textSize="18sp"
+        android:text="@string/expenses_by_category"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
-        android:textColor="@color/black"
         android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/statsTextView"
+        app:layout_constraintTop_toBottomOf="@id/statsCard"
         app:layout_constraintStart_toStartOf="parent"/>
 
-
-
-
-    <!-- Текст для пустого состояния -->
-    <TextView
-        android:id="@+id/emptyTextView"
-        app:layout_constraintTop_toTopOf="@id/categoriesRecyclerView"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginHorizontal="16dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-
-
-
-    <!-- Кнопка Добавить -->
+    <!-- Список категорий (занимает всё место до нижних кнопок) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/categoriesRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="16dp"
-        app:layout_constraintBottom_toTopOf="@id/addButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="12dp"
+        android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/sectionTitleTextView"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintBottom_toTopOf="@id/bottomButtonsLayout"/>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        app:layout_constraintTop_toBottomOf="@id/categoriesRecyclerView"
-        app:layout_constraintStart_toStartOf="parent"
-
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        />
-
-    <Button
-        android:id="@+id/addButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Добавить расход"
-        android:backgroundTint="#E0E0E0"
-        android:textColor="@color/black"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@id/importTextView"
-        app:layout_constraintTop_toTopOf="@+id/progressBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <!-- Импортировать выписку из банка -->
+    <!-- Пустое состояние -->
     <TextView
-        android:id="@+id/importTextView"
+        android:id="@+id/emptyTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOutline"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/sectionTitleTextView"
+        app:layout_constraintBottom_toTopOf="@id/bottomButtonsLayout"/>
+
+    <!-- Прогресс загрузки -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Импортировать выписку из банка"
-        android:textSize="14sp"
-        android:textColor="@color/gray"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorColor="?attr/colorPrimary"
+        app:layout_constraintTop_toBottomOf="@id/sectionTitleTextView"
+        app:layout_constraintBottom_toTopOf="@id/bottomButtonsLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <!-- Контейнер для нижних кнопок (прижат к низу) -->
+    <LinearLayout
+        android:id="@+id/bottomButtonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="?attr/colorSurface"
+        app:layout_constraintBottom_toBottomOf="parent">
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/addButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/btn_add_expense"
+            app:cornerRadius="16dp" />
+
+        <!-- ID оставлен importTextView, чтобы ваш onClickListener продолжал работать -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/importTextView"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/import_bank_statement" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -60,12 +60,21 @@ public class UpcomingExpenseAdapter extends RecyclerView.Adapter<UpcomingExpense
 
         public void bind(UpcomingExpense expense) {
             titleTextView.setText(expense.getTitle());
-            amountTextView.setText(expense.getAmount() + "₽");
+            amountTextView.setText(expense.getAmount() + " ₽");
             dateTextView.setText(expense.getDate());
 
             if (expense.getNote() != null && !expense.getNote().isEmpty()) {
                 noteTextView.setVisibility(View.VISIBLE);
                 noteTextView.setText(expense.getNote());
+
+                // Меняем цвет в зависимости от того, прогноз это или реальный расход
+                if (expense.getNote().contains("Прогноз")) {
+                    noteTextView.setTextColor(itemView.getContext().getResources().getColor(android.R.color.darker_gray, null));
+                    amountTextView.setTextColor(itemView.getContext().getResources().getColor(android.R.color.darker_gray, null));
+                } else {
+                    noteTextView.setTextColor(itemView.getContext().getResources().getColor(android.R.color.holo_green_dark, null));
+                    amountTextView.setTextColor(itemView.getContext().getResources().getColor(android.R.color.black, null));
+                }
             } else {
                 noteTextView.setVisibility(View.GONE);
             }

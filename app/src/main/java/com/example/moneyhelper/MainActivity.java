@@ -46,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_profile) {
                 selectedFragment = new ProfileFragment();
             }
+//            else if (itemId == R.id.nav_calendar){
+//                selectedFragment = new PredictionCalendarFragment();
+//            }
 
             if (selectedFragment != null) {
                 loadFragment(selectedFragment);

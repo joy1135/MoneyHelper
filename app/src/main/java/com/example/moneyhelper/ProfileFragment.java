@@ -1,6 +1,5 @@
 package com.example.moneyhelper;
 
-import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -23,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moneyhelper.DataTypes.Category;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,7 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onDeleteClick(Category category) {
-                new AlertDialog.Builder(getContext())
+                new MaterialAlertDialogBuilder(requireContext())
                         .setTitle("Удалить категорию?")
                         .setMessage(category.getName())
                         .setPositiveButton("Удалить", (d, w) -> {
@@ -107,7 +107,7 @@ public class ProfileFragment extends Fragment {
         EditText et = new EditText(getContext());
         et.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
-        new AlertDialog.Builder(getContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Изменить доход")
                 .setView(et)
                 .setPositiveButton("Сохранить", (d, w) -> {
@@ -213,7 +213,7 @@ public class ProfileFragment extends Fragment {
             }
         }
 
-        new AlertDialog.Builder(getContext())
+        new MaterialAlertDialogBuilder(getContext())
                 .setTitle(isEdit ? "Редактировать категорию" : "Добавить категорию")
                 .setView(v)
                 .setPositiveButton("Сохранить", (d, w) -> {
