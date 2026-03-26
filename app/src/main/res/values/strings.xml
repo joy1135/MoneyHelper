@@ -55,7 +55,7 @@
 <string name="empty_transactions">Нет транзакций</string>
 
 <!-- Главный экран -->
-<string name="expense_forecast_title">Прогноз расходо2в</string>
+<string name="expense_forecast_title">Прогноз расходов</string>
 <string name="forecast_next_month">Прогноз расходов на следующий месяц</string>
 <string name="income_expense_balance">Доход-расход</string>
 <string name="btn_predict_expenses">Спрогнозировать расходы</string>
@@ -65,6 +65,59 @@
 <!--<string name="expenses_by_category">Расходы по категориям</string>-->
 <string name="btn_add_expense">Добавить расход</string>
 <!--<string name="import_bank_statement">Импортировать выписку из банка</string>-->
+
+    <string name="delete_category_title">Удалить категорию?</string>
+    <string name="delete_button">Удалить</string>
+    <string name="cancel_button">Отмена</string>
+    <string name="save_button">Сохранить</string>
+    <string name="edit_income_title">Изменить доход</string>
+    <string name="enter_amount_hint">Введите сумму</string>
+    <string name="edit_category_title">Редактировать категорию</string>
+
+    <string name="error_loading_categories">Ошибка загрузки категорий: %1$s</string>
+    <string name="empty_categories">Нет категорий.\nДобавьте расход или импортируйте выписку.</string>
+    <string name="no_categories_available">Нет доступных категорий. Сначала создайте категорию.</string>
+    <string name="category_label">Категория:</string>
+    <string name="amount_label">Сумма (₽):</string>
+    <string name="amount_hint">Введите сумму</string>
+    <string name="add_button_text">Добавить</string>
+    <string name="expense_added">Расход добавлен</string>
+    <string name="error_adding_expense">Ошибка добавления расхода</string>
+    <string name="category_created">Категория создана</string>
+    <string name="error_creating_category">Ошибка создания категории</string>
+    <string name="enter_amount_error">Введите сумму</string>
+    <string name="amount_positive_error">Сумма должна быть больше 0</string>
+    <string name="invalid_amount_error">Некорректная сумма</string>
+    <string name="stats_format">%1$s\nКатегорий: %2$d | Расходы: %3$.0f ₽ | Прогноз: %4$.0f ₽</string>
+
+    <string name="budget_format">Бюджет: %1$.0f ₽</string>
+    <string name="category_fixed">Фиксированная</string>
+
+    <string name="category_title_placeholder">Категория</string>
+    <string name="total_amount_placeholder">Всего: 0 ₽</string>
+    <string name="btn_edit_description">Редактировать</string>
+    <string name="btn_delete_description">Удалить</string>
+
+    <string name="error_loading_transactions">Ошибка загрузки транзакций: %1$s</string>
+    <string name="empty_transactions_month">Нет транзакций за этот месяц.</string>
+    <string name="total_amount_format">Всего: %1$.0f ₽</string>
+    <string name="edit_expense_title">Редактировать расход</string>
+    <string name="delete_transaction_title">Удалить транзакцию?</string>
+    <string name="delete_transaction_message">Транзакция на сумму %1$.0f ₽ будет удалена. Это действие нельзя отменить.</string>
+    <string name="transaction_deleted">Транзакция удалена</string>
+    <string name="error_deleting_transaction">Ошибка удаления транзакции</string>
+    <string name="expense_updated">Расход обновлен</string>
+    <string name="error_updating_expense">Ошибка обновления расхода</string>
+
+    <string name="expense_type_income">Доход</string>
+    <string name="expense_type_expense">Расход</string>
+
+    <string name="predict_error">Ошибка: %1$s</string>
+    <string name="predict_unknown_category">Неизвестная категория</string>
+    <string name="predict_category_not_found">Категория не найдена</string>
+    <string name="predict_no_data">Нет данных о расходах</string>
+    <string name="predict_not_enough_data">Недостаточно данных. Нужны данные минимум за 2 месяца</string>
+    <string name="predict_calc_error">Ошибка вычисления: %1$s</string>
 
 <!-- Импорт выписки -->
 <string name="import_sber_statement">Импорт выписки</string>

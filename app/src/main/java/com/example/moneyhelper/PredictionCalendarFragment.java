@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class PredictionCalendarFragment extends Fragment {
+public class PredictionCalendarFragment extends BaseFragment {
 
     private CalendarView calendarView;
     private RecyclerView rvDailyPredictions;

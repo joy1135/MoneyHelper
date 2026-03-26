@@ -13,16 +13,50 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvProfileTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Профиль"
-            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-            android:textColor="?attr/colorOnSurface"
-            android:textStyle="bold"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/tvProfileTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Профиль"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvLangRu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RU"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textStyle="bold"
+                android:padding="8dp"/>
+
+            <TextView
+                android:id="@+id/tvDivider"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="|"
+                android:textColor="?attr/colorOutline"
+                android:paddingHorizontal="2dp"/>
+
+            <TextView
+                android:id="@+id/tvLangEn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="EN"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:padding="8dp"/>
+
+        </LinearLayout>
 
         <!-- Карточка дохода -->
         <com.google.android.material.card.MaterialCardView
@@ -82,6 +116,15 @@
             android:textStyle="bold"
             android:layout_marginBottom="16dp"/>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEditCategories"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            app:cornerRadius="16dp"
+            android:text="Добавить категорию"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"/>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvCategories"
             android:layout_width="match_parent"
@@ -89,14 +132,6 @@
             android:nestedScrollingEnabled="false"
             android:clipToPadding="false"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEditCategories"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            app:cornerRadius="16dp"
-            android:text="Добавить категорию"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="16dp"/>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

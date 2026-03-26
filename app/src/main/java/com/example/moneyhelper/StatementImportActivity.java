@@ -18,7 +18,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-public class StatementImportActivity extends AppCompatActivity {
+public class StatementImportActivity extends BaseActivity {
 
     private Button btnSelectFile;
     private Button btnImport;

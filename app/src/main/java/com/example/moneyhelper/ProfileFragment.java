@@ -17,7 +17,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,9 +27,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends BaseFragment {
 
     private TextView tvMoney;
+    private TextView tvLangRu, tvLangEn;
     private Button btnEditMoney, btnAddCategory;
     private RecyclerView rvCategories;
 
@@ -51,6 +52,8 @@ public class ProfileFragment extends Fragment {
         btnEditMoney = v.findViewById(R.id.btnEditMoney);
         btnAddCategory = v.findViewById(R.id.btnEditCategories);
         rvCategories = v.findViewById(R.id.rvCategories);
+        tvLangRu = v.findViewById(R.id.tvLangRu);
+        tvLangEn = v.findViewById(R.id.tvLangEn);
 
         databaseHelper = DatabaseHelper.getInstance(requireContext());
 
@@ -64,9 +67,9 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onDeleteClick(Category category) {
                 new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("Удалить категорию?")
+                        .setTitle(getString(R.string.delete_category_title))
                         .setMessage(category.getName())
-                        .setPositiveButton("Удалить", (d, w) -> {
+                        .setPositiveButton(getString(R.string.delete_button), (d, w) -> {
                             SQLiteDatabase db = databaseHelper.getWritableDatabase();
                             db.delete(
                                     "user_categories",
@@ -75,7 +78,7 @@ public class ProfileFragment extends Fragment {
                             );
                             loadCategories();
                         })
-                        .setNegativeButton("Отмена", null)
+                        .setNegativeButton(getString(R.string.cancel_button), null)
                         .show();
             }
         });
@@ -83,11 +86,38 @@ public class ProfileFragment extends Fragment {
 
         loadMoney();
         loadCategories();
+        setupLanguageSwitcher();
 
         btnEditMoney.setOnClickListener(v1 -> showEditMoneyDialog());
         btnAddCategory.setOnClickListener(v1 -> showAddCategoryDialog());
 
         return v;
+    }
+
+    private void setupLanguageSwitcher() {
+        updateLangHighlight();
+
+        tvLangRu.setOnClickListener(v -> {
+            LocaleHelper.setLocale(requireContext(), "ru");
+            requireActivity().recreate();
+        });
+
+        tvLangEn.setOnClickListener(v -> {
+            LocaleHelper.setLocale(requireContext(), "en");
+            requireActivity().recreate();
+        });
+    }
+
+    private void updateLangHighlight() {
+        String currentLang = LocaleHelper.getSavedLanguage(requireContext());
+
+        if (currentLang.equals("en")) {
+            tvLangEn.setAlpha(1f);
+            tvLangRu.setAlpha(0.4f);
+        } else {
+            tvLangRu.setAlpha(1f);
+            tvLangEn.setAlpha(0.4f);
+        }
     }
 
     private void loadMoney() {
@@ -98,7 +128,7 @@ public class ProfileFragment extends Fragment {
         );
 
         if (c.moveToFirst()) {
-            tvMoney.setText("Доход: " + c.getInt(0) + " ₽");
+            tvMoney.setText(c.getInt(0) + " ₽");
         }
         c.close();
     }
@@ -108,25 +138,24 @@ public class ProfileFragment extends Fragment {
         et.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
         new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Изменить доход")
+                .setTitle(getString(R.string.edit_income_title))
                 .setView(et)
-                .setPositiveButton("Сохранить", (d, w) -> {
+                .setPositiveButton(getString(R.string.save_button), (d, w) -> {
                     String amountStr = et.getText().toString().trim();
                     if (amountStr.isEmpty()) {
-                        Toast.makeText(getContext(), "Введите сумму", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.enter_amount_hint), Toast.LENGTH_SHORT).show();
                         return;
                     }
                     SQLiteDatabase db = databaseHelper.getWritableDatabase();
                     ContentValues cv = new ContentValues();
-                    cv.put("money", Integer.parseInt(et.getText().toString()));
+                    cv.put("money", Integer.parseInt(amountStr));
                     db.update("users", cv, "id = ?",
                             new String[]{String.valueOf(userId)});
                     loadMoney();
                 })
-                .setNegativeButton("Отмена", null)
+                .setNegativeButton(getString(R.string.cancel_button), null)
                 .show();
     }
-
 
     private void loadCategories() {
         List<Category> list = new ArrayList<>();
@@ -182,9 +211,9 @@ public class ProfileFragment extends Fragment {
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
         Cursor c = db.rawQuery("SELECT id, name FROM categories", null);
         while (c.moveToNext()) {
-            long id = c.getLong(0);      // id из таблицы categories
+            long id = c.getLong(0);
             String name = c.getString(1);
-            categoriesList.add(new Category(0, id, name, "", false, 0, 0)); // <-- здесь исправлено
+            categoriesList.add(new Category(0, id, name, "", false, 0, 0));
         }
         c.close();
 
@@ -214,9 +243,9 @@ public class ProfileFragment extends Fragment {
         }
 
         new MaterialAlertDialogBuilder(getContext())
-                .setTitle(isEdit ? "Редактировать категорию" : "Добавить категорию")
+                .setTitle(isEdit ? getString(R.string.edit_category_title) : getString(R.string.add_expense_dialog_title))
                 .setView(v)
-                .setPositiveButton("Сохранить", (d, w) -> {
+                .setPositiveButton(getString(R.string.save_button), (d, w) -> {
                     ContentValues cv = new ContentValues();
                     cv.put("name", etName.getText().toString());
                     cv.put("fixed", switchFixed.isChecked() ? 1 : 0);
@@ -240,8 +269,7 @@ public class ProfileFragment extends Fragment {
 
                     loadCategories();
                 })
-                .setNegativeButton("Отмена", null)
+                .setNegativeButton(getString(R.string.cancel_button), null)
                 .show();
     }
-
 }

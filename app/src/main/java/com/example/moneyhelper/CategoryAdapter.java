@@ -117,8 +117,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             // Бюджет
             if (budgetTextView != null) {
                 if (category.getBudget() > 0) {
-                    budgetTextView.setText(String.format(Locale.getDefault(),
-                            "Бюджет: %.0f ₽", category.getBudget()));
+                    budgetTextView.setText(itemView.getContext().getString(
+                            R.string.budget_format, category.getBudget()));
                     budgetTextView.setVisibility(View.VISIBLE);
                 } else {
                     budgetTextView.setVisibility(View.GONE);
@@ -244,7 +244,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
             public void bind(Category category, CategoryClickListener listener) {
                 tvName.setText(category.getName());
-                tvFixed.setText(category.isFixed() ? "Фиксированная" : "");
+                tvFixed.setText(category.isFixed()
+                        ? itemView.getContext().getString(R.string.category_fixed)
+                        : "");
 
                 btnEdit.setOnClickListener(v -> {
                     if (listener != null) listener.onEditClick(category);

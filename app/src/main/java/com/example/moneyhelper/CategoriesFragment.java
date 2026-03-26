@@ -16,7 +16,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -31,7 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class CategoriesFragment extends Fragment {
+public class CategoriesFragment extends BaseFragment {
 
     private RecyclerView categoriesRecyclerView;
     private CategoryAdapter categoryAdapter;
@@ -59,7 +58,10 @@ public class CategoriesFragment extends Fragment {
         });
 
         categoryService = new CategoryService(getContext());
-        monthFormat = new SimpleDateFormat("LLLL yyyy", new Locale("ru"));
+
+        // Локаль берём из настроек приложения
+        Locale locale = new Locale(LocaleHelper.getSavedLanguage(requireContext()));
+        monthFormat = new SimpleDateFormat("LLLL yyyy", locale);
 
         selectedMonth = Calendar.getInstance();
         selectedMonth.set(Calendar.DAY_OF_MONTH, 1);
@@ -74,7 +76,6 @@ public class CategoriesFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         initViews(view);
         setupRecyclerView();
         loadCategories();
@@ -91,7 +92,6 @@ public class CategoriesFragment extends Fragment {
         monthNextButton = view.findViewById(R.id.monthNextButton);
 
         addButton.setOnClickListener(v -> showAddCategoryDialog());
-
         monthPrevButton.setOnClickListener(v -> navigateMonth(-1));
         monthNextButton.setOnClickListener(v -> navigateMonth(1));
 
@@ -103,18 +103,15 @@ public class CategoriesFragment extends Fragment {
         categoryAdapter = new CategoryAdapter(new ArrayList<>(), new CategoryAdapter.CategoryClickListener() {
             @Override
             public void onCategoryClick(Category category) {
-                // Открываем экран с деталями категории
                 openCategoryDetails(category);
             }
 
             @Override
-            public void onCategoryLongClick(Category category) {
-                // Длинный клик не используется
-            }
+            public void onCategoryLongClick(Category category) {}
         });
         categoriesRecyclerView.setAdapter(categoryAdapter);
     }
-    
+
     private void openCategoryDetails(Category category) {
         Intent intent = new Intent(getContext(), CategoryDetailsActivity.class);
         intent.putExtra(CategoryDetailsActivity.EXTRA_CATEGORY_ID, category.getUserCategoryId());
@@ -133,14 +130,11 @@ public class CategoriesFragment extends Fragment {
             try {
                 Date monthDate = selectedMonth.getTime();
                 List<Category> categories = categoryService.getCategoriesForMonth(monthDate);
-
-                CategoryService.CategoryStats stats =
-                        categoryService.getCategoryStats(monthDate);
+                CategoryService.CategoryStats stats = categoryService.getCategoryStats(monthDate);
 
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
-
                         if (categories.isEmpty()) {
                             showEmptyState();
                         } else {
@@ -148,33 +142,30 @@ public class CategoriesFragment extends Fragment {
                         }
                     });
                 }
-
             } catch (Exception e) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         Toast.makeText(getContext(),
-                                "Ошибка загрузки категорий: " + e.getMessage(),
+                                getString(R.string.error_loading_categories, e.getMessage()),
                                 Toast.LENGTH_SHORT).show();
                     });
                 }
             }
         }).start();
     }
-    
+
     private void showCategories(List<Category> categories, CategoryService.CategoryStats stats) {
         categoriesRecyclerView.setVisibility(View.VISIBLE);
         emptyTextView.setVisibility(View.GONE);
-
         categoryAdapter.updateCategories(categories);
-
         updateStats(stats);
     }
 
     private void showEmptyState() {
         categoriesRecyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
-        emptyTextView.setText("Нет категорий.\nДобавьте расход или импортируйте выписку.");
+        emptyTextView.setText(getString(R.string.empty_categories));
 
         if (statsTextView != null) {
             statsTextView.setVisibility(View.GONE);
@@ -184,17 +175,13 @@ public class CategoriesFragment extends Fragment {
     private void updateStats(CategoryService.CategoryStats stats) {
         if (statsTextView != null) {
             statsTextView.setVisibility(View.VISIBLE);
-
             String monthName = monthFormat.format(selectedMonth.getTime());
-            String statsText = String.format(Locale.getDefault(),
-                    "%s\n" +
-                            "Категорий: %d | Расходы: %.0f ₽ | Прогноз: %.0f ₽",
+            String statsText = getString(R.string.stats_format,
                     monthName,
                     stats.totalCategories,
                     stats.totalExpense,
                     stats.totalBudget
             );
-
             statsTextView.setText(statsText);
         }
     }
@@ -207,24 +194,22 @@ public class CategoriesFragment extends Fragment {
 
     private void updateMonthDisplay() {
         if (monthTextView != null) {
-            String monthName = monthFormat.format(selectedMonth.getTime());
-            monthTextView.setText(monthName);
+            monthTextView.setText(monthFormat.format(selectedMonth.getTime()));
         }
     }
 
     private void showAddCategoryDialog() {
         new Thread(() -> {
             List<Category> categories = categoryService.getAllUserCategories();
-            
+
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     if (categories.isEmpty()) {
                         Toast.makeText(getContext(),
-                                "Нет доступных категорий. Сначала создайте категорию.",
+                                getString(R.string.no_categories_available),
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    
                     showAddExpenseDialog(categories);
                 });
             }
@@ -235,18 +220,16 @@ public class CategoriesFragment extends Fragment {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
         builder.setTitle(R.string.add_expense_dialog_title);
 
-        View dialogView = getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
-
         android.widget.LinearLayout container = new android.widget.LinearLayout(requireContext());
         container.setOrientation(android.widget.LinearLayout.VERTICAL);
         container.setPadding(50, 40, 50, 10);
 
         TextView categoryLabel = new TextView(requireContext());
-        categoryLabel.setText("Категория:");
+        categoryLabel.setText(getString(R.string.category_label));
         categoryLabel.setTextSize(16);
         categoryLabel.setPadding(0, 0, 0, 10);
         container.addView(categoryLabel);
-        
+
         Spinner categorySpinner = new Spinner(requireContext());
         List<String> categoryNames = new ArrayList<>();
         for (Category cat : categories) {
@@ -259,43 +242,40 @@ public class CategoriesFragment extends Fragment {
         container.addView(categorySpinner);
 
         TextView amountLabel = new TextView(requireContext());
-        amountLabel.setText("Сумма (₽):");
+        amountLabel.setText(getString(R.string.amount_label));
         amountLabel.setTextSize(16);
         amountLabel.setPadding(0, 30, 0, 10);
         container.addView(amountLabel);
-        
+
         EditText amountEditText = new EditText(requireContext());
         amountEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        amountEditText.setHint("Введите сумму");
+        amountEditText.setHint(getString(R.string.amount_hint));
         container.addView(amountEditText);
-        
+
         builder.setView(container);
-        
-        builder.setPositiveButton("Добавить", (dialog, which) -> {
+
+        builder.setPositiveButton(getString(R.string.add_button_text), (dialog, which) -> {
             String amountStr = amountEditText.getText().toString().trim();
             if (amountStr.isEmpty()) {
-                Toast.makeText(getContext(), "Введите сумму", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.enter_amount_error), Toast.LENGTH_SHORT).show();
                 return;
             }
-            
             try {
                 double amount = Double.parseDouble(amountStr);
                 if (amount <= 0) {
-                    Toast.makeText(getContext(), "Сумма должна быть больше 0", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.amount_positive_error), Toast.LENGTH_SHORT).show();
                     return;
                 }
-                
                 int selectedPosition = categorySpinner.getSelectedItemPosition();
                 if (selectedPosition >= 0 && selectedPosition < categories.size()) {
-                    Category selectedCategory = categories.get(selectedPosition);
-                    addExpense(selectedCategory.getUserCategoryId(), amount);
+                    addExpense(categories.get(selectedPosition).getUserCategoryId(), amount);
                 }
             } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), "Некорректная сумма", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.invalid_amount_error), Toast.LENGTH_SHORT).show();
             }
         });
-        
-        builder.setNegativeButton("Отмена", null);
+
+        builder.setNegativeButton(getString(R.string.cancel_button), null);
         builder.show();
     }
 
@@ -303,18 +283,14 @@ public class CategoriesFragment extends Fragment {
         new Thread(() -> {
             Date monthDate = selectedMonth.getTime();
             boolean success = categoryService.addExpense(userCategoryId, amount, monthDate);
-            
+
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     if (success) {
-                        Toast.makeText(getContext(),
-                                "Расход добавлен",
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.expense_added), Toast.LENGTH_SHORT).show();
                         loadCategories();
                     } else {
-                        Toast.makeText(getContext(),
-                                "Ошибка добавления расхода",
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.error_adding_expense), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -328,24 +304,22 @@ public class CategoriesFragment extends Fragment {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     if (categoryId > 0) {
-                        Toast.makeText(getContext(),
-                                "Категория создана",
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.category_created), Toast.LENGTH_SHORT).show();
                         loadCategories();
                     } else {
-                        Toast.makeText(getContext(),
-                                "Ошибка создания категории",
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.error_creating_category), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         }).start();
     }
 
-
     @Override
     public void onResume() {
         super.onResume();
+        // Обновляем формат месяца при возврате (язык мог измениться)
+        Locale locale = new Locale(LocaleHelper.getSavedLanguage(requireContext()));
+        monthFormat = new SimpleDateFormat("LLLL yyyy", locale);
         loadCategories();
     }
 }

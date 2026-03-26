@@ -1,10 +1,13 @@
 package com.example.moneyhelper.predict;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+
+import com.example.moneyhelper.R;
 import com.example.moneyhelper.predict.ExpenseData;
 import com.example.moneyhelper.predict.PredictionResult;
 import java.text.ParseException;
@@ -21,11 +24,13 @@ public class ExpensePredictor {
     private static final String TAG = "ExpensePredictor";
 
     private final SQLiteDatabase database;
+    private final Context context; // ← добавить
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
     private final SimpleDateFormat monthFormat = new SimpleDateFormat("MM.yyyy", Locale.getDefault());
 
-    public ExpensePredictor(SQLiteDatabase database) {
+    public ExpensePredictor(SQLiteDatabase database, Context context) { // ← добавить context
         this.database = database;
+        this.context = context;
     }
 
     /**
@@ -55,7 +60,7 @@ public class ExpensePredictor {
                 } catch (Exception e) {
                     Log.e(TAG, "Ошибка при предсказании для категории " + category.name, e);
                     results.add(new PredictionResult(category.userCatId, category.name,
-                            "Ошибка: " + e.getMessage()));
+                            context.getString(R.string.predict_error, e.getMessage())));
                 }
             }
 
@@ -78,7 +83,9 @@ public class ExpensePredictor {
             return new PredictionResult(userCatId, "Неизвестная категория", "Категория не найдена");
         }
 
-        return predictForCategory(category);
+        return new PredictionResult(userCatId,
+                context.getString(R.string.predict_unknown_category),
+                context.getString(R.string.predict_category_not_found));
     }
 
     private PredictionResult predictForCategory(CategoryInfo category) {
@@ -90,12 +97,12 @@ public class ExpensePredictor {
 
             if (monthlyExpenses.isEmpty()) {
                 return new PredictionResult(category.userCatId, category.name,
-                        "Нет данных о расходах");
+                        context.getString(R.string.predict_no_data));
             }
 
             if (monthlyExpenses.size() < 2) {
                 return new PredictionResult(category.userCatId, category.name,
-                        "Недостаточно данных. Нужны данные минимум за 2 месяца");
+                        context.getString(R.string.predict_not_enough_data));
             }
 
             // Подготавливаем данные для линейной регрессии
@@ -135,7 +142,7 @@ public class ExpensePredictor {
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при предсказании для категории " + category.name, e);
             return new PredictionResult(category.userCatId, category.name,
-                    "Ошибка вычисления: " + e.getMessage());
+                    context.getString(R.string.predict_calc_error, e.getMessage()));
         }
     }
 

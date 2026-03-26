@@ -13,7 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class CategoryDetailsActivity extends AppCompatActivity {
+public class CategoryDetailsActivity extends BaseActivity {
 
     public static final String EXTRA_CATEGORY_ID = "category_id";
     public static final String EXTRA_CATEGORY_NAME = "category_name";
@@ -49,28 +48,21 @@ public class CategoryDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category_details);
 
-        // Кнопка «назад» в ActionBar (стрелка вверху слева)
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // Получаем данные из Intent
         userCategoryId = getIntent().getLongExtra(EXTRA_CATEGORY_ID, -1);
         String categoryName = getIntent().getStringExtra(EXTRA_CATEGORY_NAME);
         String categoryIcon = getIntent().getStringExtra(EXTRA_CATEGORY_ICON);
         long monthDateLong = getIntent().getLongExtra(EXTRA_MONTH_DATE, -1);
-        
-        if (monthDateLong > 0) {
-            monthDate = new Date(monthDateLong);
-        } else {
-            monthDate = new Date();
-        }
+
+        monthDate = monthDateLong > 0 ? new Date(monthDateLong) : new Date();
 
         categoryService = new CategoryService(this);
 
         initViews();
-        
-        // Устанавливаем заголовок категории
+
         if (categoryIcon != null && !categoryIcon.isEmpty()) {
             categoryTitleTextView.setText(categoryIcon + " " + categoryName);
         } else {
@@ -84,7 +76,6 @@ public class CategoryDetailsActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Обработка нажатия на стрелку «назад»
             finish();
             return true;
         }
@@ -98,7 +89,6 @@ public class CategoryDetailsActivity extends AppCompatActivity {
         categoryTitleTextView = findViewById(R.id.categoryTitleTextView);
         totalAmountTextView = findViewById(R.id.totalAmountTextView);
 
-        // Кнопка назад в верхней панели
         TextView backButtonTextView = findViewById(R.id.backButtonTextView);
         backButtonTextView.setOnClickListener(v -> finish());
     }
@@ -127,14 +117,11 @@ public class CategoryDetailsActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 List<Expense> expenses = categoryService.getExpensesByCategory(userCategoryId, monthDate);
-
-                // Вычисляем общую сумму
                 double totalAmount = expenses.stream().mapToDouble(Expense::getAmount).sum();
 
                 if (getApplicationContext() != null) {
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
-
                         if (expenses.isEmpty()) {
                             showEmptyState();
                         } else {
@@ -142,13 +129,12 @@ public class CategoryDetailsActivity extends AppCompatActivity {
                         }
                     });
                 }
-
             } catch (Exception e) {
                 if (getApplicationContext() != null) {
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         Toast.makeText(this,
-                                "Ошибка загрузки транзакций: " + e.getMessage(),
+                                getString(R.string.error_loading_transactions, e.getMessage()),
                                 Toast.LENGTH_SHORT).show();
                     });
                 }
@@ -159,19 +145,15 @@ public class CategoryDetailsActivity extends AppCompatActivity {
     private void showExpenses(List<Expense> expenses, double totalAmount) {
         expensesRecyclerView.setVisibility(View.VISIBLE);
         emptyTextView.setVisibility(View.GONE);
-
         expenseAdapter.updateExpenses(expenses);
-
-        // Обновляем общую сумму
-        totalAmountTextView.setText(String.format(Locale.getDefault(), 
-                "Всего: %.0f ₽", totalAmount));
+        totalAmountTextView.setText(getString(R.string.total_amount_format, totalAmount));
         totalAmountTextView.setVisibility(View.VISIBLE);
     }
 
     private void showEmptyState() {
         expensesRecyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
-        emptyTextView.setText("Нет транзакций за этот месяц.");
+        emptyTextView.setText(getString(R.string.empty_transactions_month));
         totalAmountTextView.setVisibility(View.GONE);
     }
 
@@ -182,24 +164,20 @@ public class CategoryDetailsActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 if (categories.isEmpty()) {
                     Toast.makeText(this,
-                            "Нет доступных категорий.",
+                            getString(R.string.no_categories_available),
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Редактировать расход");
+                builder.setTitle(getString(R.string.edit_expense_title));
 
-                View dialogView = getLayoutInflater()
-                        .inflate(android.R.layout.simple_list_item_1, null);
-
-                android.widget.LinearLayout container =
-                        new android.widget.LinearLayout(this);
+                android.widget.LinearLayout container = new android.widget.LinearLayout(this);
                 container.setOrientation(android.widget.LinearLayout.VERTICAL);
                 container.setPadding(50, 40, 50, 10);
 
                 TextView categoryLabel = new TextView(this);
-                categoryLabel.setText("Категория:");
+                categoryLabel.setText(getString(R.string.category_label));
                 categoryLabel.setTextSize(16);
                 categoryLabel.setPadding(0, 0, 0, 10);
                 container.addView(categoryLabel);
@@ -215,105 +193,80 @@ public class CategoryDetailsActivity extends AppCompatActivity {
                     }
                 }
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        this,
-                        android.R.layout.simple_spinner_item,
-                        categoryNames
-                );
-                adapter.setDropDownViewResource(
-                        android.R.layout.simple_spinner_dropdown_item);
+                        this, android.R.layout.simple_spinner_item, categoryNames);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 categorySpinner.setAdapter(adapter);
                 categorySpinner.setSelection(selectedIndex);
                 container.addView(categorySpinner);
 
                 TextView amountLabel = new TextView(this);
-                amountLabel.setText("Сумма (₽):");
+                amountLabel.setText(getString(R.string.amount_label));
                 amountLabel.setTextSize(16);
                 amountLabel.setPadding(0, 30, 0, 10);
                 container.addView(amountLabel);
 
                 EditText amountEditText = new EditText(this);
                 amountEditText.setInputType(
-                        InputType.TYPE_CLASS_NUMBER
-                                | InputType.TYPE_NUMBER_FLAG_DECIMAL
-                );
-                amountEditText.setText(String.format(
-                        Locale.getDefault(),
-                        "%.2f",
-                        expense.getAmount()
-                ));
+                        InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                amountEditText.setText(String.format(Locale.getDefault(),
+                        "%.2f", expense.getAmount()));
                 container.addView(amountEditText);
 
                 builder.setView(container);
 
-                builder.setPositiveButton("Сохранить", (dialog, which) -> {
-                    String amountStr = amountEditText.getText()
-                            .toString()
-                            .trim();
+                builder.setPositiveButton(getString(R.string.save_button), (dialog, which) -> {
+                    String amountStr = amountEditText.getText().toString().trim();
                     if (amountStr.isEmpty()) {
-                        Toast.makeText(this,
-                                "Введите сумму",
+                        Toast.makeText(this, getString(R.string.enter_amount_error),
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }
-
                     try {
                         double amount = Double.parseDouble(amountStr);
                         if (amount <= 0) {
-                            Toast.makeText(this,
-                                    "Сумма должна быть больше 0",
+                            Toast.makeText(this, getString(R.string.amount_positive_error),
                                     Toast.LENGTH_SHORT).show();
                             return;
                         }
-
-                        int selectedPosition =
-                                categorySpinner.getSelectedItemPosition();
-                        if (selectedPosition >= 0
-                                && selectedPosition < categories.size()) {
-                            Category selectedCategory =
-                                    categories.get(selectedPosition);
+                        int selectedPosition = categorySpinner.getSelectedItemPosition();
+                        if (selectedPosition >= 0 && selectedPosition < categories.size()) {
                             updateExpense(expense.getId(),
-                                    selectedCategory.getUserCategoryId(),
+                                    categories.get(selectedPosition).getUserCategoryId(),
                                     amount);
                         }
                     } catch (NumberFormatException e) {
-                        Toast.makeText(this,
-                                "Некорректная сумма",
+                        Toast.makeText(this, getString(R.string.invalid_amount_error),
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
 
-                builder.setNegativeButton("Отмена", null);
+                builder.setNegativeButton(getString(R.string.cancel_button), null);
                 builder.show();
             });
         }).start();
     }
 
     private void showDeleteExpenseConfirmation(Expense expense) {
-        new android.app.AlertDialog.Builder(this)
-                .setTitle("Удалить транзакцию?")
-                .setMessage(String.format(Locale.getDefault(),
-                        "Транзакция на сумму %.0f ₽ будет удалена. Это действие нельзя отменить.",
-                        expense.getAmount()))
-                .setPositiveButton("Удалить", (dialog, which) -> {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.delete_transaction_title))
+                .setMessage(getString(R.string.delete_transaction_message, expense.getAmount()))
+                .setPositiveButton(getString(R.string.delete_button), (dialog, which) -> {
                     deleteExpense(expense);
                 })
-                .setNegativeButton("Отмена", null)
+                .setNegativeButton(getString(R.string.cancel_button), null)
                 .show();
     }
 
     private void deleteExpense(Expense expense) {
         new Thread(() -> {
             boolean success = categoryService.deleteExpense(expense.getId());
-
             runOnUiThread(() -> {
                 if (success) {
-                    Toast.makeText(this,
-                            "Транзакция удалена",
+                    Toast.makeText(this, getString(R.string.transaction_deleted),
                             Toast.LENGTH_SHORT).show();
-                    loadExpenses(); // Перезагружаем список
+                    loadExpenses();
                 } else {
-                    Toast.makeText(this,
-                            "Ошибка удаления транзакции",
+                    Toast.makeText(this, getString(R.string.error_deleting_transaction),
                             Toast.LENGTH_SHORT).show();
                 }
             });
@@ -322,21 +275,14 @@ public class CategoryDetailsActivity extends AppCompatActivity {
 
     private void updateExpense(long expenseId, long userCategoryId, double amount) {
         new Thread(() -> {
-            boolean success = categoryService.updateExpense(
-                    expenseId,
-                    userCategoryId,
-                    amount
-            );
-
+            boolean success = categoryService.updateExpense(expenseId, userCategoryId, amount);
             runOnUiThread(() -> {
                 if (success) {
-                    Toast.makeText(this,
-                            "Расход обновлен",
+                    Toast.makeText(this, getString(R.string.expense_updated),
                             Toast.LENGTH_SHORT).show();
                     loadExpenses();
                 } else {
-                    Toast.makeText(this,
-                            "Ошибка обновления расхода",
+                    Toast.makeText(this, getString(R.string.error_updating_expense),
                             Toast.LENGTH_SHORT).show();
                 }
             });

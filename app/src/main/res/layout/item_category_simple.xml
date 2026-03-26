@@ -37,7 +37,7 @@
                 android:id="@+id/tvFixed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Фиксированная"
+                android:text="@string/category_fixed"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOutline"
                 android:layout_marginTop="2dp"/>
@@ -50,7 +50,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_edit"
             app:tint="?attr/colorPrimary"
-            android:contentDescription="Редактировать"/>
+            android:contentDescription="@string/btn_edit_description"/>
 
         <ImageButton
             android:id="@+id/btnDelete"
@@ -59,6 +59,6 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_delete"
             app:tint="?attr/colorError"
-            android:contentDescription="Удалить"/>
+            android:contentDescription="@string/btn_delete_description"/>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

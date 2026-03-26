@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Money Helper</string>
+
+    <!-- Screens -->
+    <string name="main_screen_title">Main</string>
+    <string name="categories_screen_title">Categories</string>
+    <string name="detail_screen_title">Category Details</string>
+    <string name="calendar_screen_title">Profile</string>
+    <string name="income_screen_title">Income</string>
+
+    <!-- Common -->
+    <string name="finance_label">Finance Tracker</string>
+    <string name="show_button">Show</string>
+    <string name="add_button">Add</string>
+
+    <!-- Main Screen -->
+    <string name="my_expenses">My Expenses</string>
+    <string name="safe_expenses">Safe Spending</string>
+    <string name="balance">Income-Expense Balance</string>
+    <string name="category">Category</string>
+    <string name="expense">Expense</string>
+    <string name="overall_expenses_chart">Overall Expenses Chart</string>
+
+    <!-- Categories -->
+    <string name="expenses_by_category">Expenses by Category</string>
+    <string name="import_bank_statement">Import Bank Statement</string>
+
+    <!-- Details -->
+    <string name="details">Details</string>
+    <string name="budget_percentage">Total % of budget:</string>
+    <string name="prev_month_expense">Previous month expense:</string>
+    <string name="expense_chart">Expense Chart</string>
+    <string name="forecast">forecast</string>
+
+    <!-- Calendar -->
+    <string name="calendar_title">Expense Calendar</string>
+    <string name="upcoming_expenses">Upcoming Expenses</string>
+
+    <!-- Income -->
+    <string name="incomes">Incomes</string>
+    <string name="income">Income</string>
+
+    <!-- Navigation -->
+    <string name="nav_categories">Categories</string>
+    <string name="nav_expenses">Expenses</string>
+    <string name="nav_profile">Profile</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="show">Show</string>
+    <string name="total_amount">Total: %1$s</string>
+    <string name="empty_transactions">No transactions</string>
+
+    <!-- Main Screen -->
+    <string name="expense_forecast_title">Expense Forecast</string>
+    <string name="forecast_next_month">Forecast for next month</string>
+    <string name="income_expense_balance">Income-Expense</string>
+    <string name="btn_predict_expenses">Predict Expenses</string>
+
+    <!-- Categories Screen -->
+    <string name="expenses">Expenses</string>
+    <string name="btn_add_expense">Add Expense</string>
+
+    <string name="delete_category_title">Delete category?</string>
+    <string name="delete_button">Delete</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="save_button">Save</string>
+    <string name="edit_income_title">Edit income</string>
+    <string name="enter_amount_hint">Enter amount</string>
+    <string name="edit_category_title">Edit category</string>
+
+    <string name="error_loading_categories">Error loading categories: %1$s</string>
+    <string name="empty_categories">No categories.\nAdd an expense or import a statement.</string>
+    <string name="no_categories_available">No categories available. Create a category first.</string>
+    <string name="category_label">Category:</string>
+    <string name="amount_label">Amount (₽):</string>
+    <string name="amount_hint">Enter amount</string>
+    <string name="add_button_text">Add</string>
+    <string name="expense_added">Expense added</string>
+    <string name="error_adding_expense">Error adding expense</string>
+    <string name="category_created">Category created</string>
+    <string name="error_creating_category">Error creating category</string>
+    <string name="enter_amount_error">Enter amount</string>
+    <string name="amount_positive_error">Amount must be greater than 0</string>
+    <string name="invalid_amount_error">Invalid amount</string>
+    <string name="stats_format">%1$s\nCategories: %2$d | Expenses: %3$.0f ₽ | Forecast: %4$.0f ₽</string>
+
+    <string name="budget_format">Budget: %1$.0f ₽</string>
+    <string name="category_fixed">Fixed</string>
+
+    <string name="category_title_placeholder">Category</string>
+    <string name="total_amount_placeholder">Total: %1$.0f ₽</string>
+    <string name="btn_edit_description">Edit</string>
+    <string name="btn_delete_description">Delete</string>
+
+    <string name="error_loading_transactions">Error loading transactions: %1$s</string>
+    <string name="empty_transactions_month">No transactions for this month.</string>
+    <string name="total_amount_format">Total: %1$.0f ₽</string>
+    <string name="edit_expense_title">Edit expense</string>
+    <string name="delete_transaction_title">Delete transaction?</string>
+    <string name="delete_transaction_message">Transaction of %1$.0f ₽ will be deleted. This action cannot be undone.</string>
+    <string name="transaction_deleted">Transaction deleted</string>
+    <string name="error_deleting_transaction">Error deleting transaction</string>
+    <string name="expense_updated">Expense updated</string>
+    <string name="error_updating_expense">Error updating expense</string>
+
+    <string name="expense_type_income">Income</string>
+    <string name="expense_type_expense">Expense</string>
+
+    <string name="predict_error">Error: %1$s</string>
+    <string name="predict_unknown_category">Unknown category</string>
+    <string name="predict_category_not_found">Category not found</string>
+    <string name="predict_no_data">No expense data available</string>
+    <string name="predict_not_enough_data">Not enough data. At least 2 months of data required</string>
+    <string name="predict_calc_error">Calculation error: %1$s</string>
+
+    <!-- Import Statement -->
+    <string name="import_sber_statement">Import Statement</string>
+    <string name="import_sber_desc">Upload a PDF bank statement from your banking app</string>
+    <string name="how_to_get_statement_title">ℹ️ How to get a statement:</string>
+    <string name="how_to_get_statement_desc">1. Open your banking app\n2. Go to \'Statements and documents\'\n3. Select card and period\n4. Download PDF statement</string>
+    <string name="btn_select_pdf">📁 Select PDF file</string>
+    <string name="file_not_selected">No file selected</string>
+    <string name="select_pdf_status">Select a PDF bank statement file</string>
+    <string name="btn_import">⬆️ Import</string>
+    <string name="btn_go_home">🏠 Go to Home</string>
+    <string name="what_will_happen_title">💡 What will happen:</string>
+    <string name="what_will_happen_desc">• Expenses will be sorted by category\n• Duplicates will be ignored\n• A forecast will be created based on 2+ months</string>
+
+    <!-- Forecast Calendar -->
+    <string name="calendar_predictions_title">Forecast Calendar</string>
+    <string name="expected_expenses_for_day">Expected charges</string>
+    <string name="nav_exprences_title">Forecast</string>
+    <string name="nav_categories_title">Expenses</string>
+    <string name="nav_profile_title">Profile</string>
+    <string name="add_expense_dialog_title">Add Expense</string>
+</resources>

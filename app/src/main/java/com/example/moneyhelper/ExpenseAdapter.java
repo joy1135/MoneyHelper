@@ -83,11 +83,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             
             // Показываем тип (доход/расход) вместо "Фиксированная"
             if (expense.isIncome()) {
-                tvFixed.setText("Доход");
+                tvFixed.setText(itemView.getContext().getString(R.string.expense_type_income));
                 tvFixed.setTextColor(itemView.getContext()
                         .getResources().getColor(android.R.color.holo_green_dark));
             } else {
-                tvFixed.setText("Расход");
+                tvFixed.setText(itemView.getContext().getString(R.string.expense_type_expense));
                 tvFixed.setTextColor(itemView.getContext()
                         .getResources().getColor(android.R.color.holo_red_dark));
             }

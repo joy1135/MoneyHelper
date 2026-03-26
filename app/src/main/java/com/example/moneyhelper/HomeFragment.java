@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends BaseFragment {
 
     private TextView balanceTextView;
     private RecyclerView expensesRecyclerView;
@@ -238,7 +238,7 @@ public class HomeFragment extends Fragment {
             executorService.execute(() -> {
                 try {
                     DatabaseHelper dbHelper = DatabaseHelper.getInstance(requireContext());
-                    ExpensePredictor predictor = new ExpensePredictor(dbHelper.getWritableDatabase());
+                    ExpensePredictor predictor = new ExpensePredictor(dbHelper.getWritableDatabase(), getContext());
 
                     List<PredictionResult> results = predictor.predictAllCategories();
 
