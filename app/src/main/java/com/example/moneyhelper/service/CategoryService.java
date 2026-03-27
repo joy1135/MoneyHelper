@@ -27,10 +27,38 @@ public class CategoryService {
 
     private final DatabaseHelper dbHelper;
     private final SimpleDateFormat dateFormat;
+    private final Locale currentLocale;
 
     public CategoryService(Context context) {
         this.dbHelper = DatabaseHelper.getInstance(context);
         this.dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+        this.currentLocale = Locale.getDefault();
+    }
+
+    /**
+     * Получить имя категории в зависимости от текущей локали
+     */
+    private String getLocalizedName(Cursor cursor, String nameColumn, String nameEnColumn) {
+        // Если текущий язык английский и есть name_en, используем его
+        if (currentLocale.getLanguage().equals("en")) {
+            int nameEnIndex = cursor.getColumnIndex(nameEnColumn);
+            if (nameEnIndex >= 0) {
+                String englishName = cursor.getString(nameEnIndex);
+                if (englishName != null && !englishName.isEmpty()) {
+                    return englishName;
+                }
+            }
+        }
+
+        // Иначе возвращаем русское имя
+        int nameIndex = cursor.getColumnIndex(nameColumn);
+        if (nameIndex >= 0) {
+            return cursor.getString(nameIndex);
+        }
+
+        // Если ни один столбец не найден, возвращаем пустую строку
+        Log.e(TAG, "Columns " + nameColumn + " and " + nameEnColumn + " not found in cursor");
+        return "";
     }
 
     /**
@@ -39,7 +67,7 @@ public class CategoryService {
     public List<Category> getAllCategories() {
         return getCategoriesForMonth(new Date());
     }
-    
+
     /**
      * Получить все категории пользователя (без фильтрации по месяцу)
      * Используется для выбора категории при добавлении расхода
@@ -53,6 +81,8 @@ public class CategoryService {
                         "    uc.id as user_cat_id, " +
                         "    uc.cat_id, " +
                         "    uc.name, " +
+                        "    c.name, " +
+                        "    c.name_en, " +
                         "    c.icon, " +
                         "    uc.fixed " +
                         "FROM user_categories uc " +
@@ -66,11 +96,11 @@ public class CategoryService {
             while (cursor.moveToNext()) {
                 long userCatId = cursor.getLong(0);
                 long catId = cursor.getLong(1);
-                String name = cursor.getString(2);
-                String icon = cursor.getString(3);
-                boolean isFixed = cursor.getInt(4) == 1;
+                String localizedName = getLocalizedName(cursor, "name", "name_en");
+                String icon = cursor.getString(5);
+                boolean isFixed = cursor.getInt(6) == 1;
 
-                Category category = new Category(userCatId, catId, name, icon,
+                Category category = new Category(userCatId, catId, localizedName, icon,
                         isFixed, 0, 0);
                 categories.add(category);
             }
@@ -94,12 +124,13 @@ public class CategoryService {
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        // Исправленный SQL запрос
         String query =
                 "SELECT " +
                         "    uc.id as user_cat_id, " +
                         "    uc.cat_id, " +
                         "    uc.name, " +
+                        "    c.name, " +
+                        "    c.name_en, " +
                         "    c.icon, " +
                         "    uc.fixed, " +
                         "    COALESCE(ex.sum_expenses, 0) as current_expense, " +
@@ -124,13 +155,13 @@ public class CategoryService {
             while (cursor.moveToNext()) {
                 long userCatId = cursor.getLong(0);
                 long catId = cursor.getLong(1);
-                String name = cursor.getString(2);
-                String icon = cursor.getString(3);
-                boolean isFixed = cursor.getInt(4) == 1;
-                double currentExpense = cursor.getDouble(5);
-                double budget = cursor.getDouble(6);
+                String localizedName = getLocalizedName(cursor, "name", "name_en");
+                String icon = cursor.getString(5);
+                boolean isFixed = cursor.getInt(6) == 1;
+                double currentExpense = cursor.getDouble(7);
+                double budget = cursor.getDouble(8);
 
-                Category category = new Category(userCatId, catId, name, icon, isFixed, currentExpense, budget);
+                Category category = new Category(userCatId, catId, localizedName, icon, isFixed, currentExpense, budget);
                 category.setMonthDate(cal.getTime());
 
                 tempList.add(category);
@@ -150,15 +181,12 @@ public class CategoryService {
         return categories;
     }
 
-
-
     /**
      * Получить категории за определенный месяц
      */
     public List<Category> getCategoriesForMonth(Date month) {
         List<Category> categories = new ArrayList<>();
 
-        // Получаем первое число месяца
         Calendar cal = Calendar.getInstance();
         cal.setTime(month);
         cal.set(Calendar.DAY_OF_MONTH, 1);
@@ -167,13 +195,13 @@ public class CategoryService {
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        // SQL запрос для получения категорий с расходами и прогнозами
-        // Учитываем только расходы (is_income = 0 или NULL для обратной совместимости)
         String query =
                 "SELECT " +
                         "    uc.id as user_cat_id, " +
                         "    uc.cat_id, " +
                         "    uc.name, " +
+                        "    c.name, " +
+                        "    c.name_en, " +
                         "    c.icon, " +
                         "    uc.fixed, " +
                         "    COALESCE(SUM(me.expenses), 0) as current_expense, " +
@@ -191,22 +219,19 @@ public class CategoryService {
         try (Cursor cursor = db.rawQuery(query,
                 new String[]{ String.valueOf(getCurrentUserId()), monthStr})) {
 
-//            Log.d(TAG, "SQL: " + cursor.);
-
             double totalExpense = 0;
             List<Category> tempList = new ArrayList<>();
 
-            // Первый проход - собираем категории и считаем общую сумму
             while (cursor.moveToNext()) {
                 long userCatId = cursor.getLong(0);
                 long catId = cursor.getLong(1);
-                String name = cursor.getString(2);
-                String icon = cursor.getString(3);
-                boolean isFixed = cursor.getInt(4) == 1;
-                double currentExpense = cursor.getDouble(5);
-                double budget = cursor.getDouble(6);
+                String localizedName = getLocalizedName(cursor, "name", "name_en");
+                String icon = cursor.getString(5);
+                boolean isFixed = cursor.getInt(6) == 1;
+                double currentExpense = cursor.getDouble(7);
+                double budget = cursor.getDouble(8);
 
-                Category category = new Category(userCatId, catId, name, icon,
+                Category category = new Category(userCatId, catId, localizedName, icon,
                         isFixed, currentExpense, budget);
                 category.setMonthDate(cal.getTime());
 
@@ -214,7 +239,6 @@ public class CategoryService {
                 totalExpense += currentExpense;
             }
 
-            // Второй проход - вычисляем проценты
             for (Category category : tempList) {
                 if (totalExpense > 0) {
                     int percentage = (int) ((category.getCurrentExpense() / totalExpense) * 100);
@@ -241,19 +265,21 @@ public class CategoryService {
 
         String query =
                 "SELECT " +
-                        "    uc.id, uc.cat_id, uc.name, c.icon, uc.fixed " +
+                        "    uc.id, uc.cat_id, uc.name, " +
+                        "    c.name, c.name_en, c.icon, uc.fixed " +
                         "FROM user_categories uc " +
                         "JOIN categories c ON uc.cat_id = c.id " +
                         "WHERE uc.id = ?";
 
         try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userCategoryId)})) {
             if (cursor.moveToFirst()) {
+                String localizedName = getLocalizedName(cursor, "name", "name_en");
                 return new Category(
                         cursor.getLong(0),
                         cursor.getLong(1),
-                        cursor.getString(2),
-                        cursor.getString(3),
-                        cursor.getInt(4) == 1,
+                        localizedName,
+                        cursor.getString(5),
+                        cursor.getInt(6) == 1,
                         0,
                         0
                 );
@@ -268,13 +294,13 @@ public class CategoryService {
     /**
      * Создать новую категорию
      */
-    public long createCategory(String name, String icon, boolean isFixed) {
+    public long createCategory(String name, String nameEn, String icon, boolean isFixed) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         db.beginTransaction();
         try {
             // 1. Создаем запись в categories (если такой еще нет)
-            long categoryId = getOrCreateGlobalCategory(name, icon);
+            long categoryId = getOrCreateGlobalCategory(name, nameEn, icon);
 
             // 2. Создаем запись в user_categories
             ContentValues values = new ContentValues();
@@ -302,7 +328,7 @@ public class CategoryService {
     /**
      * Обновить категорию
      */
-    public boolean updateCategory(long userCategoryId, String name, String icon, boolean isFixed) {
+    public boolean updateCategory(long userCategoryId, String name, String nameEn, String icon, boolean isFixed) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         db.beginTransaction();
@@ -316,13 +342,25 @@ public class CategoryService {
                     "id = ?",
                     new String[]{String.valueOf(userCategoryId)});
 
-            // Обновляем иконку в categories (если категория принадлежит пользователю)
-            if (icon != null) {
-                db.execSQL(
-                        "UPDATE categories SET icon = ? " +
-                                "WHERE id = (SELECT cat_id FROM user_categories WHERE id = ?)",
-                        new Object[]{icon, userCategoryId}
-                );
+            // Обновляем иконку и английское имя в categories
+            if (icon != null || nameEn != null) {
+                StringBuilder sql = new StringBuilder("UPDATE categories SET ");
+                List<Object> args = new ArrayList<>();
+
+                if (icon != null) {
+                    sql.append("icon = ?");
+                    args.add(icon);
+                }
+                if (nameEn != null) {
+                    if (icon != null) sql.append(", ");
+                    sql.append("name_en = ?");
+                    args.add(nameEn);
+                }
+
+                sql.append(" WHERE id = (SELECT cat_id FROM user_categories WHERE id = ?)");
+                args.add(userCategoryId);
+
+                db.execSQL(sql.toString(), args.toArray());
             }
 
             db.setTransactionSuccessful();
@@ -347,8 +385,6 @@ public class CategoryService {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         try {
-            // Благодаря ON DELETE CASCADE в схеме БД,
-            // связанные записи в monthly_expenses и predict удалятся автоматически
             int rows = db.delete("user_categories",
                     "id = ?",
                     new String[]{String.valueOf(userCategoryId)});
@@ -366,10 +402,6 @@ public class CategoryService {
 
     /**
      * Добавить расход для категории на указанный месяц
-     * @param userCategoryId ID категории пользователя
-     * @param amount Сумма расхода
-     * @param month Месяц для добавления расхода (если null, используется текущий месяц)
-     * @return true если успешно добавлено
      */
     public boolean addExpense(long userCategoryId, double amount, Date month) {
         if (amount <= 0) {
@@ -378,11 +410,10 @@ public class CategoryService {
         }
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        
+
         try {
             db.beginTransaction();
-            
-            // Получаем или создаем date_id для указанного месяца
+
             Calendar cal = Calendar.getInstance();
             if (month != null) {
                 cal.setTime(month);
@@ -392,10 +423,9 @@ public class CategoryService {
             cal.set(Calendar.MINUTE, 0);
             cal.set(Calendar.SECOND, 0);
             cal.set(Calendar.MILLISECOND, 0);
-            
+
             String monthStr = dateFormat.format(cal.getTime());
-            
-            // Ищем существующую запись в dates
+
             long dateId;
             try (Cursor cursor = db.query(
                     "dates",
@@ -403,32 +433,29 @@ public class CategoryService {
                     "date = ?",
                     new String[]{monthStr},
                     null, null, null)) {
-                
+
                 if (cursor.moveToFirst()) {
                     dateId = cursor.getLong(0);
                 } else {
-                    // Создаем новую запись
                     ContentValues dateValues = new ContentValues();
                     dateValues.put("date", monthStr);
                     dateId = db.insert("dates", null, dateValues);
                 }
             }
-            
-            // Генерируем transaction_id, если его нет
+
             String transactionId = UUID.randomUUID().toString();
-            
-            // Добавляем расход
+
             ContentValues values = new ContentValues();
             values.put("user_cat_id", userCategoryId);
             values.put("expenses", amount);
             values.put("date_id", dateId);
-            values.put("is_income", 0); // 0 - расход
+            values.put("is_income", 0);
             values.put("transaction_id", transactionId);
-            
+
             long result = db.insert("monthly_expenses", null, values);
-            
+
             db.setTransactionSuccessful();
-            
+
             if (result > 0) {
                 Log.d(TAG, String.format("Добавлен расход %.2f для категории %d", amount, userCategoryId));
                 return true;
@@ -436,7 +463,7 @@ public class CategoryService {
                 Log.e(TAG, "Ошибка добавления расхода");
                 return false;
             }
-            
+
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при добавлении расхода", e);
             return false;
@@ -444,26 +471,21 @@ public class CategoryService {
             db.endTransaction();
         }
     }
-    
+
     /**
      * Добавить расход для категории на текущий месяц
-     * @param userCategoryId ID категории пользователя
-     * @param amount Сумма расхода
-     * @return true если успешно добавлено
      */
     public boolean addExpense(long userCategoryId, double amount) {
         return addExpense(userCategoryId, amount, null);
     }
-    
+
     /**
      * Получить все расходы за указанный месяц
-     * @param month Месяц для получения расходов
-     * @return Список расходов
      */
     public List<Expense> getExpensesForMonth(Date month) {
         List<Expense> expenses = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Calendar cal = Calendar.getInstance();
         if (month != null) {
             cal.setTime(month);
@@ -473,15 +495,17 @@ public class CategoryService {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        
+
         String monthStr = dateFormat.format(cal.getTime());
-        
+
         String query =
                 "SELECT " +
                         "    me.id, " +
                         "    me.transaction_id, " +
                         "    me.user_cat_id, " +
                         "    uc.name as category_name, " +
+                        "    c.name, " +
+                        "    c.name_en, " +
                         "    c.icon as category_icon, " +
                         "    me.expenses, " +
                         "    COALESCE(me.is_income, 0) as is_income, " +
@@ -492,108 +516,99 @@ public class CategoryService {
                         "JOIN dates d ON me.date_id = d.id " +
                         "WHERE uc.user_id = ? AND d.date = ? " +
                         "ORDER BY me.id DESC";
-        
+
         try (Cursor cursor = db.rawQuery(query,
                 new String[]{String.valueOf(getCurrentUserId()), monthStr})) {
-            
+
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(0);
                 String transactionId = cursor.getString(1);
                 long userCatId = cursor.getLong(2);
-                String categoryName = cursor.getString(3);
-                String categoryIcon = cursor.getString(4);
-                double amount = cursor.getDouble(5);
-                boolean isIncome = cursor.getInt(6) == 1;
-                String dateStr = cursor.getString(7);
-                
+                String localizedName = getLocalizedName(cursor, "name", "name_en");
+                String categoryIcon = cursor.getString(6);
+                double amount = cursor.getDouble(7);
+                boolean isIncome = cursor.getInt(8) == 1;
+                String dateStr = cursor.getString(9);
+
                 Date expenseDate;
                 try {
                     expenseDate = dateFormat.parse(dateStr);
                 } catch (Exception e) {
                     expenseDate = cal.getTime();
                 }
-                
+
                 Expense expense = new Expense(id, transactionId, userCatId,
-                        categoryName, categoryIcon, amount, isIncome, expenseDate);
+                        localizedName, categoryIcon, amount, isIncome, expenseDate);
                 expenses.add(expense);
             }
-            
+
             Log.d(TAG, String.format("Загружено %d расходов за %s", expenses.size(), monthStr));
-            
+
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при загрузке расходов", e);
         }
-        
+
         return expenses;
     }
-    
+
     /**
      * Обновить расход
-     * @param expenseId ID расхода
-     * @param userCategoryId ID категории пользователя
-     * @param amount Новая сумма расхода
-     * @return true если успешно обновлено
      */
     public boolean updateExpense(long expenseId, long userCategoryId, double amount) {
         if (amount <= 0) {
             Log.e(TAG, "Сумма расхода должна быть больше 0");
             return false;
         }
-        
+
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        
+
         try {
             ContentValues values = new ContentValues();
             values.put("user_cat_id", userCategoryId);
             values.put("expenses", amount);
-            
+
             int rows = db.update("monthly_expenses", values,
                     "id = ?",
                     new String[]{String.valueOf(expenseId)});
-            
+
             Log.d(TAG, String.format("Обновлен расход id=%d, изменено строк: %d", expenseId, rows));
-            
+
             return rows > 0;
-            
+
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при обновлении расхода", e);
             return false;
         }
     }
-    
+
     /**
      * Удалить расход
-     * @param expenseId ID расхода
-     * @return true если успешно удалено
      */
     public boolean deleteExpense(long expenseId) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        
+
         try {
             int rows = db.delete("monthly_expenses",
                     "id = ?",
                     new String[]{String.valueOf(expenseId)});
-            
+
             Log.d(TAG, String.format("Удален расход id=%d, удалено строк: %d", expenseId, rows));
-            
+
             return rows > 0;
-            
+
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при удалении расхода", e);
             return false;
         }
     }
-    
+
     /**
-     * Получить все транзакции (расходы) по категории за указанный месяц
-     * @param userCategoryId ID категории пользователя
-     * @param month Месяц для получения транзакций
-     * @return Список транзакций
+     * Получить все транзакции по категории за указанный месяц
      */
     public List<Expense> getExpensesByCategory(long userCategoryId, Date month) {
         List<Expense> expenses = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Calendar cal = Calendar.getInstance();
         if (month != null) {
             cal.setTime(month);
@@ -603,15 +618,17 @@ public class CategoryService {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        
+
         String monthStr = dateFormat.format(cal.getTime());
-        
+
         String query =
                 "SELECT " +
                         "    me.id, " +
                         "    me.transaction_id, " +
                         "    me.user_cat_id, " +
                         "    uc.name as category_name, " +
+                        "    c.name, " +
+                        "    c.name_en, " +
                         "    c.icon as category_icon, " +
                         "    me.expenses, " +
                         "    COALESCE(me.is_income, 0) as is_income, " +
@@ -622,53 +639,53 @@ public class CategoryService {
                         "JOIN dates d ON me.date_id = d.id " +
                         "WHERE me.user_cat_id = ? AND d.date = ? " +
                         "ORDER BY me.id DESC";
-        
+
         try (Cursor cursor = db.rawQuery(query,
                 new String[]{String.valueOf(userCategoryId), monthStr})) {
-            
+
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(0);
                 String transactionId = cursor.getString(1);
                 long userCatId = cursor.getLong(2);
-                String categoryName = cursor.getString(3);
-                String categoryIcon = cursor.getString(4);
-                double amount = cursor.getDouble(5);
-                boolean isIncome = cursor.getInt(6) == 1;
-                String dateStr = cursor.getString(7);
-                
+                String localizedName = getLocalizedName(cursor, "name", "name_en");
+                String categoryIcon = cursor.getString(6);
+                double amount = cursor.getDouble(7);
+                boolean isIncome = cursor.getInt(8) == 1;
+                String dateStr = cursor.getString(9);
+
                 Date expenseDate;
                 try {
                     expenseDate = dateFormat.parse(dateStr);
                 } catch (Exception e) {
                     expenseDate = cal.getTime();
                 }
-                
+
                 Expense expense = new Expense(id, transactionId, userCatId,
-                        categoryName, categoryIcon, amount, isIncome, expenseDate);
+                        localizedName, categoryIcon, amount, isIncome, expenseDate);
                 expenses.add(expense);
             }
-            
-            Log.d(TAG, String.format("Загружено %d транзакций для категории %d за %s", 
+
+            Log.d(TAG, String.format("Загружено %d транзакций для категории %d за %s",
                     expenses.size(), userCategoryId, monthStr));
-            
+
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при загрузке транзакций по категории", e);
         }
-        
+
         return expenses;
     }
-    
+
     /**
      * Получить или создать глобальную категорию
      */
-    private long getOrCreateGlobalCategory(String name, String icon) {
+    private long getOrCreateGlobalCategory(String name, String nameEn, String icon) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        // Ищем существующую категорию
+        // Ищем существующую категорию по русскому имени или английскому
         try (Cursor cursor = db.query("categories",
                 new String[]{"id"},
-                "name = ?",
-                new String[]{name},
+                "name = ? OR name_en = ?",
+                new String[]{name, nameEn != null ? nameEn : name},
                 null, null, null)) {
 
             if (cursor.moveToFirst()) {
@@ -679,6 +696,7 @@ public class CategoryService {
         // Создаем новую
         ContentValues values = new ContentValues();
         values.put("name", name);
+        values.put("name_en", nameEn != null ? nameEn : name);
         values.put("icon", icon != null ? icon : "📦");
 
         return db.insert("categories", null, values);
@@ -686,10 +704,8 @@ public class CategoryService {
 
     /**
      * Получить ID текущего пользователя
-     * TODO: Заменить на реальную логику получения текущего пользователя
      */
     private long getCurrentUserId() {
-        // Пока возвращаем первого пользователя
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         try (Cursor cursor = db.query("users", new String[]{"id"},
                 null, null, null, null, null, "1")) {
@@ -697,7 +713,7 @@ public class CategoryService {
                 return cursor.getLong(0);
             }
         }
-        return 1; // Fallback
+        return 1;
     }
 
     /**
@@ -705,8 +721,7 @@ public class CategoryService {
      */
     public List<Category> getTopCategories(Date month, int limit) {
         List<Category> allCategories = getCategoriesForMonth(month);
-        
-        // Фильтруем категории с расходами > 0 и берем топ N
+
         List<Category> topCategories = new ArrayList<>();
         for (Category category : allCategories) {
             if (category.getCurrentExpense() > 0) {
@@ -716,24 +731,24 @@ public class CategoryService {
                 }
             }
         }
-        
+
         return topCategories;
     }
-    
+
     /**
      * Получить категории с прогнозами на следующий месяц из таблицы predict
-     * Сортирует по убыванию прогноза
      */
     public List<Category> getCategoriesWithPredictions() {
         List<Category> categories = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        // SQL запрос для получения категорий с прогнозами из таблицы predict
         String query =
                 "SELECT " +
                         "    uc.id as user_cat_id, " +
                         "    uc.cat_id, " +
                         "    uc.name, " +
+                        "    c.name, " +
+                        "    c.name_en, " +
                         "    c.icon, " +
                         "    uc.fixed, " +
                         "    COALESCE(p.predict, 0) as prediction " +
@@ -749,24 +764,21 @@ public class CategoryService {
             double totalPrediction = 0;
             List<Category> tempList = new ArrayList<>();
 
-            // Первый проход - собираем категории и считаем общую сумму прогнозов
             while (cursor.moveToNext()) {
                 long userCatId = cursor.getLong(0);
                 long catId = cursor.getLong(1);
-                String name = cursor.getString(2);
-                String icon = cursor.getString(3);
-                boolean isFixed = cursor.getInt(4) == 1;
-                double prediction = cursor.getDouble(5);
+                String localizedName = getLocalizedName(cursor, "name", "name_en");
+                String icon = cursor.getString(5);
+                boolean isFixed = cursor.getInt(6) == 1;
+                double prediction = cursor.getDouble(7);
 
-                // Создаем Category с прогнозом в поле budget, а currentExpense = 0
-                Category category = new Category(userCatId, catId, name, icon,
+                Category category = new Category(userCatId, catId, localizedName, icon,
                         isFixed, 0, prediction);
 
                 tempList.add(category);
                 totalPrediction += prediction;
             }
 
-            // Второй проход - вычисляем проценты от общей суммы прогнозов
             for (Category category : tempList) {
                 if (totalPrediction > 0) {
                     int percentage = (int) ((category.getBudget() / totalPrediction) * 100);
@@ -784,37 +796,18 @@ public class CategoryService {
 
         return categories;
     }
-    
+
     /**
      * Получить общий доход за месяц
      */
     public double getTotalIncome(Date month) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Calendar cal = Calendar.getInstance();
         cal.setTime(month);
         cal.set(Calendar.DAY_OF_MONTH, 1);
         String monthStr = dateFormat.format(cal.getTime());
-        
-//        try {
-//            // Получаем сумму доходов из monthly_expenses где is_income = 1
-//            String query = "SELECT COALESCE(SUM(me.expenses), 0) " +
-//                          "FROM monthly_expenses me " +
-//                          "JOIN dates d ON me.date_id = d.id " +
-//                          "JOIN user_categories uc ON me.user_cat_id = uc.id " +
-//                          "WHERE uc.user_id = ? AND d.date = ? AND me.is_income = 1";
-//
-//            try (Cursor cursor = db.rawQuery(query,
-//                    new String[]{String.valueOf(getCurrentUserId()), monthStr})) {
-//                if (cursor.moveToFirst()) {
-//                    double income = cursor.getDouble(0);
-//                    Log.d(TAG, String.format("Доход за %s: %.2f", monthStr, income));
-//                    return income;
-//                }
-//            }
-//        } catch (Exception e) {
-//            Log.e(TAG, "Ошибка при получении дохода", e);
-//        }
+
         try {
             String query = "SELECT money from users where id = ?";
             try(Cursor cursor= db.rawQuery(query, new String[]{String.valueOf(getCurrentUserId())})) {
@@ -827,10 +820,10 @@ public class CategoryService {
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при получении дохода", e);
         }
-        
+
         return 0.0;
     }
-    
+
     /**
      * Получить общий расход за месяц
      */
@@ -838,7 +831,7 @@ public class CategoryService {
         CategoryStats stats = getCategoryStats(month);
         return stats.totalExpense;
     }
-    
+
     /**
      * Получить баланс (доход - расход) за месяц
      */

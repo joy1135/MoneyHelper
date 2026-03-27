@@ -26,7 +26,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Профиль"
+                android:text="@string/profile_title"
                 android:textAppearance="?attr/textAppearanceHeadlineMedium"
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"/>
@@ -83,7 +83,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Мой доход"
+                        android:text="@string/my_income"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnPrimaryContainer"/>
 
@@ -103,14 +103,14 @@
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Изменить"/>
+                    android:text="@string/btn_edit"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Управление категориями"
+            android:text="@string/category_management"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
@@ -121,7 +121,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             app:cornerRadius="16dp"
-            android:text="Добавить категорию"
+            android:text="@string/btn_add_category"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"/>
 

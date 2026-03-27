@@ -119,6 +119,26 @@
     <string name="predict_not_enough_data">Недостаточно данных. Нужны данные минимум за 2 месяца</string>
     <string name="predict_calc_error">Ошибка вычисления: %1$s</string>
 
+    <string name="error_loading_data">Ошибка загрузки данных: %1$s</string>
+    <string name="empty_predictions">Нет прогнозов. Создайте прогнозы, нажав кнопку \"Спрогнозировать расходы\"</string>
+    <string name="prediction_started">Запуск предсказания расходов...</string>
+    <string name="prediction_done">Предсказание завершено! Успешно: %1$d из %2$d категорий</string>
+    <string name="prediction_not_enough_data">Недостаточно данных для предсказания. Нужны данные минимум за 2 месяца.</string>
+    <string name="prediction_error">Ошибка при выполнении предсказания: %1$s</string>
+    <string name="prediction_results_title">Предсказание расходов на следующий месяц</string>
+    <string name="prediction_results_header">Результаты предсказаний:\n\n</string>
+    <string name="prediction_result_success">• %1$s: %2$.2f руб.\n</string>
+    <string name="prediction_result_error">• %1$s: %2$s\n</string>
+
+    <string name="profile_title">Профиль</string>
+    <string name="my_income">Мой доход</string>
+    <string name="btn_edit">Изменить</string>
+    <string name="category_management">Управление категориями</string>
+    <string name="btn_add_category">Добавить категорию</string>
+
+    <string name="hint_category_name">Название категории</string>
+    <string name="switch_fixed_category">Фиксированная категория</string>
+
 <!-- Импорт выписки -->
 <string name="import_sber_statement">Импорт выписки</string>
 <string name="import_sber_desc">Загрузите PDF выписку из банковского приложения</string>

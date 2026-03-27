@@ -299,7 +299,7 @@ public class CategoriesFragment extends BaseFragment {
 
     private void createCategory(String name, String icon, boolean isFixed) {
         new Thread(() -> {
-            long categoryId = categoryService.createCategory(name, icon, isFixed);
+            long categoryId = categoryService.createCategory(name,null, icon, isFixed);
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {

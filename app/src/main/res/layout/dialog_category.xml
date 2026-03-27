@@ -9,14 +9,14 @@
         android:id="@+id/etName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Название категории"
+        android:hint="@string/hint_category_name"
         android:inputType="textPersonName" />
 
     <Switch
         android:id="@+id/switchFixed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Фиксированная категория"
+        android:text="@string/switch_fixed_category"
         android:layout_marginTop="12dp" />
 
     <Spinner

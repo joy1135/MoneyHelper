@@ -66,7 +66,9 @@ public class SimpleCategoryAdapter extends RecyclerView.Adapter<SimpleCategoryAd
 
         public void bind(Category category, CategoryClickListener listener) {
             tvName.setText(category.getName());
-            tvFixed.setText(category.isFixed() ? "Фиксированная" : "");
+            tvFixed.setText(category.isFixed()
+                    ? itemView.getContext().getString(R.string.category_fixed)
+                    : "");
 
             btnEdit.setOnClickListener(v -> {
                 if (listener != null) listener.onEditClick(category);

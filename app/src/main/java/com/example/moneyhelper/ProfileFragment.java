@@ -172,10 +172,23 @@ public class ProfileFragment extends BaseFragment {
             String name = c.getString(2);
             boolean fixed = c.getInt(3) == 1;
 
+            // Получаем name_en из таблицы categories по cat_id
+            String nameEn = null;
+            Cursor catCursor = db.rawQuery(
+                    "SELECT name_en FROM categories WHERE id = ?",
+                    new String[]{String.valueOf(categoryId)}
+            );
+            if (catCursor.moveToFirst()) {
+                nameEn = catCursor.getString(0);
+            }
+            catCursor.close();
+
+            String localizedName = getLocalizedName(name, nameEn);
+
             Category category = new Category(
                     userCategoryId,
                     categoryId,
-                    name,
+                    localizedName,
                     "",
                     fixed,
                     0,
@@ -197,6 +210,14 @@ public class ProfileFragment extends BaseFragment {
         showCategoryDialog(category);
     }
 
+    private String getLocalizedName(String nameRu, String nameEn) {
+        String lang = LocaleHelper.getSavedLanguage(requireContext());
+        if (lang.equals("en") && nameEn != null && !nameEn.isEmpty()) {
+            return nameEn;
+        }
+        return nameRu;
+    }
+
     private void showCategoryDialog(Category category) {
         View v = LayoutInflater.from(getContext())
                 .inflate(R.layout.dialog_category, null);
@@ -209,11 +230,15 @@ public class ProfileFragment extends BaseFragment {
 
         List<Category> categoriesList = new ArrayList<>();
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT id, name FROM categories", null);
+
+        // Добавили name_en в запрос
+        Cursor c = db.rawQuery("SELECT id, name, name_en FROM categories", null);
         while (c.moveToNext()) {
             long id = c.getLong(0);
-            String name = c.getString(1);
-            categoriesList.add(new Category(0, id, name, "", false, 0, 0));
+            String nameRu = c.getString(1);
+            String nameEn = c.getString(2);
+            String localizedName = getLocalizedName(nameRu, nameEn);
+            categoriesList.add(new Category(0, id, localizedName, "", false, 0, 0));
         }
         c.close();
 
@@ -243,7 +268,8 @@ public class ProfileFragment extends BaseFragment {
         }
 
         new MaterialAlertDialogBuilder(getContext())
-                .setTitle(isEdit ? getString(R.string.edit_category_title) : getString(R.string.add_expense_dialog_title))
+                .setTitle(isEdit ? getString(R.string.edit_category_title)
+                        : getString(R.string.add_expense_dialog_title))
                 .setView(v)
                 .setPositiveButton(getString(R.string.save_button), (d, w) -> {
                     ContentValues cv = new ContentValues();
@@ -255,12 +281,8 @@ public class ProfileFragment extends BaseFragment {
 
                     if (isEdit) {
                         cv.put("cat_id", catId);
-                        db.update(
-                                "user_categories",
-                                cv,
-                                "id = ?",
-                                new String[]{String.valueOf(category.getUserCategoryId())}
-                        );
+                        db.update("user_categories", cv, "id = ?",
+                                new String[]{String.valueOf(category.getUserCategoryId())});
                     } else {
                         cv.put("user_id", userId);
                         cv.put("cat_id", catId);

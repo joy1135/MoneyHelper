@@ -102,59 +102,44 @@ public class HomeFragment extends BaseFragment {
 
     private void loadData() {
         resetEmptyState();
-        // Загружаем данные в фоновом потоке
         new Thread(() -> {
             try {
                 Date currentMonth = new Date();
-                
-                // Получаем баланс
                 double balance = categoryService.getBalance(currentMonth);
-                
-                // Получаем категории с текущими расходами за текущий месяц и прогнозами из predict
                 allCategories = categoryService.getCategoriesForMonthForPrediction(currentMonth);
-                
-                // Фильтруем категории с прогнозами > 0
+
                 List<Category> categoriesWithPredictions = new ArrayList<>();
                 for (Category category : allCategories) {
                     if (category.getBudget() > 0) {
                         categoriesWithPredictions.add(category);
-                        Log.d("MAIN", category.toString());
                     }
                 }
                 allCategories = categoriesWithPredictions;
-                
-                // Сортируем по убыванию текущих расходов
-                allCategories.sort((c1, c2) -> {
-                    // Если нужно поднять те, где есть прогноз, выше:
-                    return Double.compare(c2.getBudget(), c1.getBudget());
-                });
-                
-                // Берем топ-3 для начального отображения
+                allCategories.sort((c1, c2) -> Double.compare(c2.getBudget(), c1.getBudget()));
+
                 displayedCategories = new ArrayList<>();
                 int count = Math.min(INITIAL_COUNT, allCategories.size());
                 for (int i = 0; i < count; i++) {
                     displayedCategories.add(allCategories.get(i));
                 }
-                
-                // Обновляем UI в главном потоке
+
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         updateBalance(balance);
                         updateCategoriesList();
                         updateShowButton();
-                        if (displayedCategories.isEmpty()){
+                        if (displayedCategories.isEmpty()) {
                             showEmptyState();
                         }
                     });
                 }
-                
             } catch (Exception e) {
                 if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(),
-                                "Ошибка загрузки данных: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    });
+                    getActivity().runOnUiThread(() ->
+                            Toast.makeText(getContext(),
+                                    getString(R.string.error_loading_data, e.getMessage()),
+                                    Toast.LENGTH_SHORT).show()
+                    );
                 }
             }
         }).start();
@@ -163,9 +148,7 @@ public class HomeFragment extends BaseFragment {
     private void showEmptyState() {
         expensesRecyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
-        emptyTextView.setText("Нет прогнозов. Создайте прогнозы, нажав кнопку \"Спрогнозировать расходы\"");
-
-
+        emptyTextView.setText(getString(R.string.empty_predictions));
     }
 
     private void resetEmptyState(){
@@ -224,12 +207,12 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void setupPredictionButton() {
-        if (predictionButton == null) {
-            return;
-        }
+        if (predictionButton == null) return;
 
         predictionButton.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Запуск предсказания расходов...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),
+                    getString(R.string.prediction_started),
+                    Toast.LENGTH_SHORT).show();
 
             if (executorService == null || executorService.isShutdown()) {
                 executorService = Executors.newSingleThreadExecutor();
@@ -238,37 +221,37 @@ public class HomeFragment extends BaseFragment {
             executorService.execute(() -> {
                 try {
                     DatabaseHelper dbHelper = DatabaseHelper.getInstance(requireContext());
-                    ExpensePredictor predictor = new ExpensePredictor(dbHelper.getWritableDatabase(), getContext());
+                    ExpensePredictor predictor = new ExpensePredictor(
+                            dbHelper.getWritableDatabase(), getContext());
 
                     List<PredictionResult> results = predictor.predictAllCategories();
 
                     requireActivity().runOnUiThread(() -> {
                         int successfulCount = 0;
                         for (PredictionResult result : results) {
-                            if (result.hasEnoughData()) {
-                                successfulCount++;
-                            }
+                            if (result.hasEnoughData()) successfulCount++;
                         }
 
                         if (successfulCount > 0) {
-                            String message = String.format("Предсказание завершено! Успешно: %d из %d категорий",
-                                    successfulCount, results.size());
-                            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-
+                            Toast.makeText(getContext(),
+                                    getString(R.string.prediction_done,
+                                            successfulCount, results.size()),
+                                    Toast.LENGTH_LONG).show();
                             showPredictionResults(results);
+                            loadData();
                         } else {
                             Toast.makeText(getContext(),
-                                    "Недостаточно данных для предсказания. Нужны данные минимум за 2 месяца.",
+                                    getString(R.string.prediction_not_enough_data),
                                     Toast.LENGTH_LONG).show();
                         }
                     });
 
                 } catch (Exception e) {
-                    requireActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(),
-                                "Ошибка при выполнении предсказания: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    });
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(getContext(),
+                                    getString(R.string.prediction_error, e.getMessage()),
+                                    Toast.LENGTH_LONG).show()
+                    );
                     e.printStackTrace();
                 }
             });
@@ -276,20 +259,21 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void showPredictionResults(List<PredictionResult> results) {
-        StringBuilder message = new StringBuilder("Результаты предсказаний:\n\n");
+        StringBuilder message = new StringBuilder(
+                getString(R.string.prediction_results_header));
 
         for (PredictionResult result : results) {
             if (result.hasEnoughData()) {
-                message.append(String.format("• %s: %.2f руб.\n",
+                message.append(getString(R.string.prediction_result_success,
                         result.getCategoryName(), result.getPredictedAmount()));
             } else {
-                message.append(String.format("• %s: %s\n",
+                message.append(getString(R.string.prediction_result_error,
                         result.getCategoryName(), result.getErrorMessage()));
             }
         }
 
         new android.app.AlertDialog.Builder(requireContext())
-                .setTitle("Предсказание расходов на следующий месяц")
+                .setTitle(getString(R.string.prediction_results_title))
                 .setMessage(message.toString())
                 .setPositiveButton("OK", null)
                 .show();

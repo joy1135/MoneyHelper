@@ -114,6 +114,26 @@
     <string name="predict_not_enough_data">Not enough data. At least 2 months of data required</string>
     <string name="predict_calc_error">Calculation error: %1$s</string>
 
+    <string name="error_loading_data">Error loading data: %1$s</string>
+    <string name="empty_predictions">No forecasts. Create forecasts by pressing \"Predict Expenses\"</string>
+    <string name="prediction_started">Starting expense prediction...</string>
+    <string name="prediction_done">Prediction complete! Successful: %1$d of %2$d categories</string>
+    <string name="prediction_not_enough_data">Not enough data for prediction. At least 2 months of data required.</string>
+    <string name="prediction_error">Error during prediction: %1$s</string>
+    <string name="prediction_results_title">Expense forecast for next month</string>
+    <string name="prediction_results_header">Prediction results:\n\n</string>
+    <string name="prediction_result_success">• %1$s: %2$.2f\n</string>
+    <string name="prediction_result_error">• %1$s: %2$s\n</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="my_income">My income</string>
+    <string name="btn_edit">Edit</string>
+    <string name="category_management">Category management</string>
+    <string name="btn_add_category">Add category</string>
+
+    <string name="hint_category_name">Category name</string>
+    <string name="switch_fixed_category">Fixed category</string>
+
     <!-- Import Statement -->
     <string name="import_sber_statement">Import Statement</string>
     <string name="import_sber_desc">Upload a PDF bank statement from your banking app</string>
