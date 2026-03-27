@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -56,7 +57,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     }
 
     static class CategoryViewHolder extends RecyclerView.ViewHolder {
-        private TextView iconTextView;
+        private ImageView iconTextView;
         private TextView categoryNameTextView;
         private TextView expenseTextView;
         private TextView percentageTextView;
@@ -78,7 +79,17 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         public void bind(Category category, CategoryClickListener listener) {
             // Иконка
             if (iconTextView != null) {
-                iconTextView.setText(category.getIcon());
+                String iconName = category.getIcon();
+                if (iconName != null && !iconName.isEmpty()) {
+                    int resId = itemView.getContext().getResources().getIdentifier(
+                            iconName,
+                            "drawable",
+                            itemView.getContext().getPackageName()
+                    );
+                    if (resId != 0) {
+                        iconTextView.setImageResource(resId);
+                    }
+                }
             }
             else {
 
