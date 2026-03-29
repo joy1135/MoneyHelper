@@ -7,6 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.example.moneyhelper.LocaleHelper;
 import com.example.moneyhelper.R;
 import com.example.moneyhelper.predict.ExpenseData;
 import com.example.moneyhelper.predict.PredictionResult;
@@ -240,24 +241,26 @@ public class ExpensePredictor {
     private List<CategoryInfo> getNonFixedCategories() {
         List<CategoryInfo> categories = new ArrayList<>();
 
-        String query = "SELECT id, name, fixed FROM user_categories WHERE fixed = 0";
+        // name_en берём из таблицы categories через JOIN
+        String query = "SELECT uc.id, uc.name, c.name_en " +
+                "FROM user_categories uc " +
+                "LEFT JOIN categories c ON uc.cat_id = c.id " +
+                "WHERE uc.fixed = 0";
         Cursor cursor = null;
 
         try {
             cursor = database.rawQuery(query, null);
-
             while (cursor.moveToNext()) {
                 int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
-                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                categories.add(new CategoryInfo(id, name));
+                String nameRu = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                String nameEn = cursor.getString(cursor.getColumnIndexOrThrow("name_en"));
+                String localizedName = getLocalizedName(nameRu, nameEn);
+                categories.add(new CategoryInfo(id, localizedName));
             }
-
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при получении категорий", e);
         } finally {
-            if (cursor != null && !cursor.isClosed()) {
-                cursor.close();
-            }
+            if (cursor != null && !cursor.isClosed()) cursor.close();
         }
 
         return categories;
@@ -267,27 +270,36 @@ public class ExpensePredictor {
      * Получает информацию о конкретной категории
      */
     private CategoryInfo getCategoryInfo(int userCatId) {
-        String query = "SELECT id, name FROM user_categories WHERE id = ?";
+        String query = "SELECT uc.id, uc.name, c.name_en " +
+                "FROM user_categories uc " +
+                "LEFT JOIN categories c ON uc.cat_id = c.id " +
+                "WHERE uc.id = ?";
         Cursor cursor = null;
 
         try {
             cursor = database.rawQuery(query, new String[]{String.valueOf(userCatId)});
-
             if (cursor.moveToFirst()) {
                 int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
-                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                return new CategoryInfo(id, name);
+                String nameRu = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                String nameEn = cursor.getString(cursor.getColumnIndexOrThrow("name_en"));
+                String localizedName = getLocalizedName(nameRu, nameEn);
+                return new CategoryInfo(id, localizedName);
             }
-
         } catch (Exception e) {
             Log.e(TAG, "Ошибка при получении информации о категории", e);
         } finally {
-            if (cursor != null && !cursor.isClosed()) {
-                cursor.close();
-            }
+            if (cursor != null && !cursor.isClosed()) cursor.close();
         }
 
         return null;
+    }
+
+    private String getLocalizedName(String nameRu, String nameEn) {
+        String lang = LocaleHelper.getSavedLanguage(context);
+        if (lang.equals("en") && nameEn != null && !nameEn.isEmpty()) {
+            return nameEn;
+        }
+        return nameRu;
     }
 
     /**

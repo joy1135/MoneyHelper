@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -62,26 +63,35 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         private ImageButton btnEdit;
         private ImageButton btnDelete;
 
+        private ImageView ivCategoryIcon;
         public ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvName);
             tvFixed = itemView.findViewById(R.id.tvFixed);
             btnEdit = itemView.findViewById(R.id.btnEdit);
             btnDelete = itemView.findViewById(R.id.btnDelete);
+            ivCategoryIcon = itemView.findViewById(R.id.ivCategoryIcon);
         }
 
         public void bind(Expense expense, ExpenseClickListener listener) {
-            // Формируем текст: иконка + название категории + сумма
-            String categoryText = "";
-            if (expense.getCategoryIcon() != null && !expense.getCategoryIcon().isEmpty()) {
-                categoryText = expense.getCategoryIcon() + " ";
-            }
-            categoryText += expense.getCategoryName();
+            // Убираем иконку из текста — только название категории и сумма
+            String categoryText = expense.getCategoryName();
             categoryText += String.format(Locale.getDefault(), " - %.0f ₽", expense.getAmount());
-            
             tvName.setText(categoryText);
-            
-            // Показываем тип (доход/расход) вместо "Фиксированная"
+
+            // Загружаем иконку в ImageView
+            String iconName = expense.getCategoryIcon();
+            if (ivCategoryIcon != null && iconName != null && !iconName.isEmpty()) {
+                int resId = itemView.getContext().getResources().getIdentifier(
+                        iconName, "drawable",
+                        itemView.getContext().getPackageName()
+                );
+                if (resId != 0) {
+                    ivCategoryIcon.setImageResource(resId);
+                }
+            }
+
+            // тип дохода/расхода
             if (expense.isIncome()) {
                 tvFixed.setText(itemView.getContext().getString(R.string.expense_type_income));
                 tvFixed.setTextColor(itemView.getContext()
@@ -95,7 +105,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             btnEdit.setOnClickListener(v -> {
                 if (listener != null) listener.onEditClick(expense);
             });
-
             btnDelete.setOnClickListener(v -> {
                 if (listener != null) listener.onDeleteClick(expense);
             });

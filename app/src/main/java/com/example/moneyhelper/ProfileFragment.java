@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -162,34 +163,28 @@ public class ProfileFragment extends BaseFragment {
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
 
         Cursor c = db.rawQuery(
-                "SELECT id, cat_id, name, fixed FROM user_categories WHERE user_id = ?",
+                "SELECT uc.id, uc.cat_id, uc.name, uc.fixed, c.icon, c.name_en " +
+                        "FROM user_categories uc " +
+                        "LEFT JOIN categories c ON uc.cat_id = c.id " +
+                        "WHERE uc.user_id = ?",
                 new String[]{String.valueOf(userId)}
         );
 
         while (c.moveToNext()) {
             long userCategoryId = c.getLong(0);
             long categoryId = c.getLong(1);
-            String name = c.getString(2);
+            String nameRu = c.getString(2);
             boolean fixed = c.getInt(3) == 1;
+            String icon = c.getString(4);
+            String nameEn = c.getString(5);
 
-            // Получаем name_en из таблицы categories по cat_id
-            String nameEn = null;
-            Cursor catCursor = db.rawQuery(
-                    "SELECT name_en FROM categories WHERE id = ?",
-                    new String[]{String.valueOf(categoryId)}
-            );
-            if (catCursor.moveToFirst()) {
-                nameEn = catCursor.getString(0);
-            }
-            catCursor.close();
-
-            String localizedName = getLocalizedName(name, nameEn);
+            String name = getLocalizedName(nameRu, nameEn); // ← локализация
 
             Category category = new Category(
                     userCategoryId,
                     categoryId,
-                    localizedName,
-                    "",
+                    name,
+                    icon,
                     fixed,
                     0,
                     0

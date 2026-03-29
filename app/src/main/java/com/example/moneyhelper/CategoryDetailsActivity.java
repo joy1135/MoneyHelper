@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -43,6 +44,8 @@ public class CategoryDetailsActivity extends BaseActivity {
     private long userCategoryId;
     private Date monthDate;
 
+    private ImageView ivCategoryIcon;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,9 +67,16 @@ public class CategoryDetailsActivity extends BaseActivity {
         initViews();
 
         if (categoryIcon != null && !categoryIcon.isEmpty()) {
-            categoryTitleTextView.setText(categoryIcon + " " + categoryName);
+            int resId = getResources().getIdentifier(
+                    categoryIcon, "drawable", getPackageName());
+            if (resId != 0) {
+                ivCategoryIcon.setImageResource(resId);
+                ivCategoryIcon.setVisibility(View.VISIBLE);
+            } else {
+                ivCategoryIcon.setVisibility(View.GONE);
+            }
         } else {
-            categoryTitleTextView.setText(categoryName);
+            ivCategoryIcon.setVisibility(View.GONE);
         }
 
         setupRecyclerView();
@@ -88,6 +98,7 @@ public class CategoryDetailsActivity extends BaseActivity {
         emptyTextView = findViewById(R.id.emptyTextView);
         categoryTitleTextView = findViewById(R.id.categoryTitleTextView);
         totalAmountTextView = findViewById(R.id.totalAmountTextView);
+        ivCategoryIcon = findViewById(R.id.ivCategoryIcon);
 
         TextView backButtonTextView = findViewById(R.id.backButtonTextView);
         backButtonTextView.setOnClickListener(v -> finish());

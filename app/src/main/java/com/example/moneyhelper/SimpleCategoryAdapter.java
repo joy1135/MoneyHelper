@@ -1,9 +1,11 @@
 package com.example.moneyhelper;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -55,6 +57,7 @@ public class SimpleCategoryAdapter extends RecyclerView.Adapter<SimpleCategoryAd
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvFixed;
         ImageButton btnEdit, btnDelete;
+        ImageView ivCategoryIcon;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -62,6 +65,7 @@ public class SimpleCategoryAdapter extends RecyclerView.Adapter<SimpleCategoryAd
             tvFixed = itemView.findViewById(R.id.tvFixed);
             btnEdit = itemView.findViewById(R.id.btnEdit);
             btnDelete = itemView.findViewById(R.id.btnDelete);
+            ivCategoryIcon = itemView.findViewById(R.id.ivCategoryIcon);
         }
 
         public void bind(Category category, CategoryClickListener listener) {
@@ -70,10 +74,20 @@ public class SimpleCategoryAdapter extends RecyclerView.Adapter<SimpleCategoryAd
                     ? itemView.getContext().getString(R.string.category_fixed)
                     : "");
 
+            String iconName = category.getIcon();
+            if (ivCategoryIcon != null && iconName != null && !iconName.isEmpty()) {
+                int resId = itemView.getContext().getResources().getIdentifier(
+                        iconName, "drawable",
+                        itemView.getContext().getPackageName()
+                );
+                if (resId != 0) {
+                    ivCategoryIcon.setImageResource(resId);
+                }
+            }
+
             btnEdit.setOnClickListener(v -> {
                 if (listener != null) listener.onEditClick(category);
             });
-
             btnDelete.setOnClickListener(v -> {
                 if (listener != null) listener.onDeleteClick(category);
             });
