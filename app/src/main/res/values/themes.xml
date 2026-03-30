@@ -3,6 +3,10 @@
     <style name="Base.Theme.MoneyHelper" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">#2196F3</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#1C1B1F</item>
     </style>
 
     <style name="Theme.MoneyHelper" parent="Base.Theme.MoneyHelper" />

@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="12dp"
-    android:background="?attr/selectableItemBackground">
+    android:background="?attr/colorSurfaceContainer">
 
     <TextView
         android:id="@+id/categoryTextView"
@@ -14,7 +14,7 @@
         android:layout_weight="1"
         android:text="Категория"
         android:textSize="16sp"
-        android:textColor="@color/black"/>
+        android:textColor="?attr/colorOnSurface"/>
 
     <TextView
         android:id="@+id/amountTextView"
@@ -23,6 +23,6 @@
         android:text="2000₽"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"/>
+        android:textColor="?attr/colorOnSurface"/>
 
 </LinearLayout>

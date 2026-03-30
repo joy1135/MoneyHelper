@@ -3,5 +3,9 @@
     <style name="Base.Theme.MoneyHelper" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">#90CAF9</item>
+        <item name="colorOnPrimary">#003258</item>
+        <item name="colorSurface">#121212</item>
+        <item name="colorOnSurface">#E3E3E3</item>
     </style>
 </resources>

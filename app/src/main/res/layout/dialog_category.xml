@@ -3,21 +3,29 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="?attr/colorSurfaceContainer"
+
+    >
 
     <EditText
         android:id="@+id/etName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/hint_category_name"
-        android:inputType="textPersonName" />
+        android:inputType="textPersonName"
+        android:textColor="?attr/colorOnSurface"
+        />
 
     <Switch
         android:id="@+id/switchFixed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/switch_fixed_category"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="12dp"
+        android:textColor="?attr/colorOnSurface"
+        android:background="?attr/colorSurfaceContainer"
+        />
 
     <Spinner
         android:id="@+id/spinnerCategory"
