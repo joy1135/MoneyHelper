@@ -1,6 +1,9 @@
 package com.example.moneyhelper;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -18,12 +21,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moneyhelper.DataTypes.Category;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +39,7 @@ public class ProfileFragment extends BaseFragment {
     private TextView tvLangRu, tvLangEn;
     private Button btnEditMoney, btnAddCategory;
     private RecyclerView rvCategories;
+    private MaterialSwitch switchTheme;
 
     private DatabaseHelper databaseHelper;
     private SimpleCategoryAdapter simpleAdapter;
@@ -55,6 +61,25 @@ public class ProfileFragment extends BaseFragment {
         rvCategories = v.findViewById(R.id.rvCategories);
         tvLangRu = v.findViewById(R.id.tvLangRu);
         tvLangEn = v.findViewById(R.id.tvLangEn);
+        switchTheme = v.findViewById(R.id.switchTheme);
+
+        int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        boolean isDarkCurrently = (currentNightMode == Configuration.UI_MODE_NIGHT_YES);
+        switchTheme.setChecked(isDarkCurrently);
+
+// 2. Обрабатываем нажатие на переключатель
+        switchTheme.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Сохраняем выбор пользователя в настройки
+            SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+            prefs.edit().putBoolean("isDarkTheme", isChecked).apply();
+
+            // Переключаем тему
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }
+        });
 
         databaseHelper = DatabaseHelper.getInstance(requireContext());
 
